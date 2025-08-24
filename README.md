@@ -57,6 +57,52 @@ MedBot is a **sophisticated, production-ready healthcare AI assistant** that tra
 - **Azure OpenAI**: [Get Azure OpenAI Key](https://azure.microsoft.com/en-us/products/cognitive-services/openai-service)
 - **HuggingFace**: [Get HF Token](https://huggingface.co/settings/tokens)
 
+## **🔐 Environment Setup**
+
+### **📋 Environment Configuration Steps**
+
+1. **Copy `.env.example` to `.env`**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Fill in your actual API keys and credentials**
+   ```bash
+   # Edit .env file with your real API keys
+   nano .env  # Linux/Mac
+   # or
+   notepad .env  # Windows
+   ```
+
+3. **Never commit `.env` to version control**
+   - The `.env` file is automatically ignored by Git
+   - Only `.env.example` template is committed
+   - Keep your API keys secure and private
+
+### **🔑 Required Environment Variables**
+
+```env
+# LLM Provider API Keys (Choose your preferred providers)
+GROQ_API_KEY=your_groq_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+AZURE_OPENAI_API_KEY=your_azure_openai_key_here
+AZURE_ENDPOINT_URL=your_azure_endpoint_url_here
+HF_TOKEN=your_huggingface_token_here
+
+# System Configuration
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+LOG_LEVEL=INFO
+```
+
+### **⚠️ Security Best Practices**
+
+- **Never share** your `.env` file
+- **Rotate API keys** regularly
+- **Use environment-specific** configurations for development/production
+- **Validate** environment variables in your application
+
 ## **🚀 Quick Start Guide**
 
 ### **🎯 One-Command Setup (Recommended)**

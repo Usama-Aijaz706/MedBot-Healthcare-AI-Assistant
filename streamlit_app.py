@@ -425,13 +425,120 @@ st.markdown("""
         margin: 0.3rem 0;
     }
     
-    /* Beautiful horizontal line separator for major content breaks */
+    /* Beautiful horizontal line separator for content breaks */
     .bot-message .content-separator {
-        height: 2px;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #667eea, #764ba2, #667eea, transparent);
+        margin: 1rem 0;
+        border-radius: 1px;
+        opacity: 0.7;
+    }
+    
+    /* Enhanced heading separators with beautiful lines */
+    .bot-message h2:not(:first-child) {
+        margin-top: 2rem !important;
+        padding-top: 1.5rem !important;
+        border-top: 3px solid transparent !important;
+        background: linear-gradient(90deg, #667eea, #764ba2, #667eea) !important;
+        background-clip: text !important;
+        -webkit-background-clip: text !important;
+        position: relative !important;
+    }
+    
+    .bot-message h2:not(:first-child)::before {
+        content: "";
+        position: absolute;
+        top: -3px;
+        left: 0;
+        right: 0;
+        height: 3px;
         background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
-        margin: 0.8rem 0;
+        border-radius: 2px;
+        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+    }
+    
+    .bot-message h3:not(:first-child) {
+        margin-top: 1.5rem !important;
+        padding-top: 1rem !important;
+        border-top: 2px solid transparent !important;
+        position: relative !important;
+    }
+    
+    .bot-message h3:not(:first-child)::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #e9ecef, #667eea, #e9ecef);
         border-radius: 1px;
         box-shadow: 0 1px 3px rgba(102, 126, 234, 0.3);
+    }
+    
+    .bot-message h4:not(:first-child) {
+        margin-top: 1rem !important;
+        padding-top: 0.8rem !important;
+        border-top: 1px solid transparent !important;
+        position: relative !important;
+    }
+    
+    .bot-message h4:not(:first-child)::before {
+        content: "";
+        position: absolute;
+        top: -1px;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, #f0f0f0, #764ba2, #f0f0f0);
+        border-radius: 1px;
+    }
+    
+    /* Special styling for numbered headings with enhanced separators */
+    .bot-message .numbered-section {
+        margin-top: 1.5rem !important;
+        padding-top: 1rem !important;
+        border-top: 2px solid transparent !important;
+        color: #764ba2 !important;
+        font-size: 1.4rem !important;
+        font-weight: bold !important;
+        position: relative !important;
+    }
+    
+    .bot-message .numbered-section::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+        border-radius: 1px;
+        box-shadow: 0 1px 4px rgba(102, 126, 234, 0.3);
+    }
+    
+    /* Decorative line separators between major sections */
+    .bot-message .section-divider {
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #667eea, #764ba2, #667eea, transparent);
+        margin: 1.5rem 0;
+        border-radius: 2px;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        position: relative;
+    }
+    
+    .bot-message .section-divider::after {
+        content: "●";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #764ba2;
+        font-size: 8px;
+        background: white;
+        padding: 2px;
+        border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     
     /* Improve spacing for category-style content */
@@ -907,6 +1014,41 @@ Ensure the response is comprehensive, accurate, and provides immense value to th
         formatted_text = re.sub(
             r'(<p>.*?</p>)\s*(<h3 class="numbered-section">)',
             r'\1<div class="content-separator"></div>\2',
+            formatted_text,
+            flags=re.DOTALL
+        )
+        
+        # Add beautiful separators ONLY between paragraphs and new headings
+        # This creates clean separation without cluttering the content
+        
+        # Add separators between paragraphs and new headings (H2, H3, H4)
+        formatted_text = re.sub(
+            r'(</p>)\s*(<h[234]>)',
+            r'\1<div class="content-separator"></div>\2',
+            formatted_text,
+            flags=re.DOTALL
+        )
+        
+        # Add separators between list endings and new headings
+        formatted_text = re.sub(
+            r'(</ul>|</ol>)\s*(<h[234]>)',
+            r'\1<div class="content-separator"></div>\2',
+            formatted_text,
+            flags=re.DOTALL
+        )
+        
+        # Add separators between numbered sections and new content
+        formatted_text = re.sub(
+            r'(</h3 class="numbered-section">)\s*(<p>)',
+            r'\1<div class="content-separator"></div>\2',
+            formatted_text,
+            flags=re.DOTALL
+        )
+        
+        # Clean up multiple consecutive separators
+        formatted_text = re.sub(
+            r'(<div class="content-separator"></div>)\s*(<div class="content-separator"></div>)',
+            r'\1',
             formatted_text,
             flags=re.DOTALL
         )

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #2d3748;
+            background: #ffffff;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            font-size: 16px;
+            counter-reset: h1-counter h2-counter h3-counter h4-counter;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 0;
+            border-bottom: 3px solid #4299e1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            margin: 0 -20px 40px -20px;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+        
+        .date {
+            margin-top: 20px;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            color: #2b6cb0;
+            margin: 40px 0 20px 0;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            position: relative;
+            counter-increment: h1-counter;
+        }
+        
+        h1::before {
+            content: counter(h1-counter) ". ";
+            color: #4299e1;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #4299e1, #667eea);
+            border-radius: 2px;
+        }
+        
+        h2 {
+            font-size: 1.6rem;
+            color: #3182ce;
+            margin: 30px 0 15px 0;
+            font-weight: 600;
+            position: relative;
+            padding-left: 15px;
+            counter-increment: h2-counter;
+        }
+        
+        h2::before {
+            content: counter(h1-counter) "." counter(h2-counter) ". ";
+            color: #4299e1;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        
+        h3 {
+            font-size: 1.3rem;
+            color: #3182ce;
+            margin: 25px 0 12px 0;
+            font-weight: 500;
+            counter-increment: h3-counter;
+        }
+        
+        h3::before {
+            content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter) ". ";
+            color: #4299e1;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        
+        h4 {
+            font-size: 1.2rem;
+            color: #3182ce;
+            margin: 20px 0 10px 0;
+            font-weight: 500;
+            counter-increment: h4-counter;
+        }
+        
+        h4::before {
+            content: counter(h1-counter) "." counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter) ". ";
+            color: #4299e1;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        
+        p {
+            margin: 16px 0;
+            text-align: justify;
+            color: #4a5568;
+        }
+        
+        .abstract {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-left: 4px solid #4299e1;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 0 12px 12px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .abstract h2 {
+            color: #2b6cb0;
+            margin-top: 0;
+            border: none;
+        }
+        
+        .abstract h2::after {
+            display: none;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+        
+        th, td {
+            padding: 15px 18px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        tr:hover {
+            background: #ebf8ff;
+            transition: background-color 0.2s ease;
+        }
+        
+        .figure {
+            text-align: center;
+            margin: 35px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        
+        .figure img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        .figure-caption {
+            margin-top: 20px;
+            font-style: italic;
+            color: #718096;
+            font-size: 0.95rem;
+        }
+        
+        .footer {
+            margin-top: 80px;
+            padding: 40px 0;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+            color: #718096;
+            font-size: 0.9rem;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            margin: 60px -20px -40px -20px;
+            border-radius: 12px 12px 0 0;
+        }
+        
+        .footer .logo {
+            font-size: 1.5rem;
+            color: #4299e1;
+            margin-bottom: 10px;
+        }
+        
+        .footer .subtitle {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                max-width: none;
+                padding: 20px;
+                font-size: 12pt;
+            }
+            
+            .header {
+                margin-bottom: 30px;
+                page-break-after: avoid;
+            }
+            
+            h1, h2, h3, h4 {
+                page-break-after: avoid;
+            }
+            
+            .figure {
+                page-break-inside: avoid;
+            }
+            
+            .footer {
+                margin-top: 40px;
+            }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 15px;
+            }
+            
+            .header {
+                margin: 0 -15px 30px -15px;
+                padding: 30px 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.4rem;
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 10px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">MedBot</div>
+        <div class="subtitle">Healthcare AI Assistant</div>
+        <div class="date" id="current-date"></div>
+    </div>
+    
+    <div id="content">
+        <h1 id="hemodynamic-insights-into-preeclampsia-comparing-ophthalmic-and-uterine-artery-resistive-indices">Hemodynamic Insights into Preeclampsia: Comparing Ophthalmic and Uterine Artery Resistive Indices.</h1>
+<p><strong>Authors:</strong> Puspitasari MK, Siddiq A, Virgana R, Pramatirta AY, Irianti S, Handono B, Mose JC, Effendi JS.</p>
+<p><strong>Journal:</strong> Med Sci Monit (2025)</p>
+<h2 id="abstract">Abstract</h2>
+<p>No abstract available.</p>
+<h2 id="background">Background</h2>
+<p>Doppler ultrasonography has emerged as a non-invasive method for evaluating vascular changes in preeclampsia. The ophthalmic artery emerges a novel target for hemodynamic assessment in preeclampsia. This study aimed to compare the Doppler ultrasound pulsatility index (PI) and resistive index (RI). PI and RI in the ophthalmic artery and uterine artery were measured in 60 pregnant women with and without preeclampsia.</p>
+<h2 id="materialmethods">Material/Methods</h2>
+<p>A cross-sectional design study was conducted to measure Doppler parameters of the uterine and the ophthalmic artery involving 30 participants in preeclampsia and 30 participants in non-preeclampsia groups in West Java from July to September 2024. Doppler ultrasound was performed (Voluson GE S8 BT-equipped with a 7.5 MHz linear transducer, operated by a single maternal-fetal medicine trainee) to measure PI and RI values in the uterine (normal 0.45–0.5) and ophthalmic arteries (normal 0.6–0.7). Bivariate statistical analysis and Pearson correlation tests were performed as further analysis.</p>
+<h2 id="results">Results</h2>
+<p>The study found that the uterine artery’s PI and RI were significantly higher in the preeclampsia group than in the normal group ( P &lt;0.0001). In contrast, the ophthalmic artery’s PI and RI were significantly lower in the preeclampsia group ( P &lt;0.0001). There was a negative correlation between the RI of the uterine artery and ophthalmic artery, with a coefficient value of −0.19 and statistically significance ( P =0.01) in the preeclampsia group.</p>
+<h2 id="conclusions">Conclusions</h2>
+<p>The findings suggest PI and RI changes and a significant correlation between uterine and ophthalmic artery RI values, reflecting systemic endothelial dysfunction in preeclampsia.</p>
+<h2 id="introduction">Introduction</h2>
+<p>Preeclampsia is a severe, progressive, and unpredictable cardiovascular disorder characterized by the onset of hypertension with or without proteinuria, affecting approximately 2% to 8% of pregnancies worldwide [ 1 – 3 ]. The condition accounts for an estimated 46 000 maternal deaths and 500 000 fetal and neonatal deaths annually. Most cases of preeclampsia occur at term and present with mild, transient symptoms that typically resolve postpartum. However, 5% to 20% of women, particularly those experiencing preeclampsia preterm, can develop life-threatening complications [ 1 ].</p>
+<p>The underlying pathophysiology of preeclampsia remains incompletely defined and is likely heterogeneous. Substantial evidence suggests that endothelial dysfunction and impaired placentation contribute to its pathogenesis in some patients, with effects of persisting postpartum complications [ 4 , 5 ]. Moreover, visual disturbances occur in up to 40% of patients with preeclampsia and can affect various parts of the visual pathway due to retinal changes, serous retinal detachment, and cortical visual impairment [ 4 , 5 ]. Identifying women at risk of developing preeclampsia is critical due to the lack of effective treatments for this condition. Early prediction efforts focus on detecting early signs, such as hypertension, proteinuria, edema, excessive weight gain, and mean arterial pressure [ 4 , 5 ]. This approach is not sufficiently accurate in predicting preeclampsia, with a detection rate of approximately 20% to 40% [ 6 , 7 ].</p>
+<p>Recently, studies have focused on biochemical markers, especially those indicating endothelial dysfunction [ 4 ]. Several biochemical markers have been proposed to identify women at risk of preeclampsia [ 8 – 11 ]. Most are based on specific pathophysiological mechanisms linked to preeclampsia, such as placentation disorders, endothelial dysfunction, coagulation activation, and systemic inflammation [ 4 ]. Among these, measuring serum levels of angiogenic and anti-angiogenic markers, including placental growth factor (PlGF) and soluble Fms-like tyrosine kinase-1, has shown promise [ 8 , 12 ]. Low PlGF concentrations early in pregnancy are associated with increased risk of preeclampsia, particularly early-onset preeclampsia. Systematic reviews and meta-analyses indicate that PlGF concentration alone can detect 40% of preeclampsia cases, with a 10% false-positive rate [ 8 , 12 ]. Markers such as vascular cell adhesion protein, indicating leukocyte activation and endothelial damage, show high specificity (100%) but low sensitivity (41%). These markers are useful in predicting high-risk preeclampsia cases but are costly and inaccessible in developing countries [ 12 – 16 ].</p>
+<p>In preeclampsia, failed invasion of spiral arteries by trophoblasts results in persistent high-resistance, low-volume vessels instead of the expected low-resistance, high-volume vessels [ 13 ]. This leads to uteroplacental blood flow resistance and placental hypoxia or ischemia, detectable via Doppler ultrasound. Abnormal Doppler waveforms in the uterine arteries, such as increased pulsatility and resistance indices and persistent notching after 18 weeks [ 17 ], are indicative of preeclampsia risk. Expanding diagnostic tools to assess maternal hemodynamic blood flow abnormalities caused by endothelial dysfunction – such as cardiovascular and cerebral compartments – is promising [ 18 ]. Doppler imaging of uterine and maternal arteries, including the ophthalmic artery, is increasingly being explored as a screening tool for preeclampsia risk. Doppler evaluation of uterine and spiral arteries helps predict significant vascular events in pregnancy [ 18 ]. In the first trimester, uterine artery Doppler alone shows low predictive accuracy (30%) for preeclampsia but achieves excellent prediction (up to 90%) for early-onset preeclampsia when combined with maternal parameters and biomarkers. In the second trimester, Doppler evaluation predicts 50% of preeclampsia cases and placental diseases [ 15 , 16 , 18 , 19 ]. Ophthalmic artery Doppler assessment has been proposed as a predictor for preeclampsia severity, cerebral hemorrhage risk, and maternal hemodynamic changes. However, the accuracy of uterine artery Doppler measurements in the first and second trimesters is limited due to challenges in standardization and quality control. Furthermore, the high costs of these diagnostic modalities restrict their accessibility, particularly in low-income settings [ 16 , 18 , 19 ].</p>
+<p>The ophthalmic artery, a direct branch of the internal carotid artery, shares embryological, anatomical, and functional similarities with small-caliber intracranial arteries [ 14 ]. Doppler ultrasonography of the ophthalmic artery represents a non-invasive technique for evaluating cerebral vascular regions. Maternal hemodynamic changes assessed via ophthalmic artery Doppler parameters have gained attention for their potential role in diagnosing preeclampsia [ 18 ]. Recent studies have proposed ophthalmic artery Doppler assessment as a promising predictor for both early- and late-onset preeclampsia and for evaluating disease severity. This procedure is considered safe and enables continuous monitoring of maternal cerebral vascular hemodynamics during the progression of preeclampsia [ 16 , 18 , 19 – 23 ].</p>
+<p>Emerging evidence highlights a decrease in resistance and hyper-perfusion of orbital blood flow in preeclamptic patients, prompting interest in investigating the correlation between uterine artery resistance indices and ophthalmic artery resistance indices in preeclampsia cases. This relationship may provide new insights into the pathophysiology and clinical management of the disorder. Therefore, this study aimed to compare the Doppler ultrasound pulsatility index (PI) and resistive index (RI) in the ophthalmic artery and uterine artery in 60 pregnant women with and without preeclampsia.</p>
+<h2 id="material-and-methods">Material and Methods</h2>
+<p>All procedures were followed after receiving clearance and recommendations from the Tertiary Hospital’s Ethics Committee Review Board (reference number DP.04.03/D.XIV.6.5/138/2024), in compliance with applicable norms and regulations.</p>
+<h2 id="study-design-research-participants">Study Design Research Participants</h2>
+<p>This study was a descriptive analytical study conducted using a cross-sectional method on pregnant women at risk of developing preeclampsia (gestational age 26 to 36 weeks) who meet the protocols of Dr. Hasan Sadikin General Hospital and its affiliated hospitals from July to September 2024. Only those who met the inclusion criteria and agreed to participate in the study by completing and signing the informed consent form were included.</p>
+<h2 id="inclusion-and-exclusion-criteria">Inclusion and Exclusion Criteria</h2>
+<p>The study included groups of women with normal pregnancies and pregnancies with preeclampsia, with or without complications based on American College of Obstetrician and Gynecologist criteria [ 24 ], meeting the following conditions: (1) gestational age between 26 and 36 weeks, determined based on the last menstrual period or crown-rump length measurement at 11 to 14 weeks of pregnancy, (2) singleton live pregnancy, (3) parity ≤4, (4) maternal age between 16 and 35 years, and (5) no vascular diseases in the orbital region. The exclusion criteria were as follows: pregnant women who met inclusion criteria but had history of chronic hypertension, hyperthyroidism, hypothyroidism, diabetes mellitus, systemic lupus erythematosus, renal dysfunction, or other chronic diseases confirmed through diagnostic investigations by the relevant departments, pregnancy complicated by congenital abnormalities in the fetus, confirmed definitively through supporting examinations (eg, ultrasound), intrauterine fetal death confirmed definitively through clinical and supporting examinations (eg, ultrasound), multiple pregnancies, and history of vascular disorders in the orbital region.</p>
+<h2 id="data-collection-methods">Data Collection Methods</h2>
+<p>A total of 60 women who gave vaginal birth that met the study criteria were divided into 2 groups: n=30 in preeclampsia group and n=30 in non-preeclampsia group. All samples were collected using consecutive samplings. This study used primary data to measure Doppler parameters of the uterine artery and ophthalmic artery in patients with normal pregnancies and pregnancies with preeclampsia at gestational ages of 26 to 36 weeks. The ultrasound machine used in this study was the Voluson GE S8 BT-19 (high resolution, Austria), equipped with a 7.5 MHz linear transducer; it was operated by a single maternal-fetal medicine trainee. An experienced ophthalmologist, skilled in performing Doppler imaging of the ophthalmic artery, participated in the study by supervising the acquisition of Doppler ultrasound images of the ophthalmic artery.</p>
+<p>After providing informed consents to patients, clinical data were recorded from medical records. For obtaining Doppler indices of the uterine artery, patients were positioned supine and rested for 5 min. The examination was performed transabdominally. The transducer was placed laterally to the uterus and tilted medially until the uterine artery was identified at the point where it crosses the external iliac artery. The sample gate was set to cover the entire diameter of the artery, and pulsatile Doppler waveforms were recorded for 3 consecutive cycles. The measured parameters were the PI and RI. To obtain Doppler indices of ophthalmic artery, the patients were positioned supine and rested for 5 min. The transducer was carefully placed transversely on the closed upper eyelid after applying conductive gel. Color Doppler flow was used to identify the ophthalmic artery, located superiorly and medially relative to the “hypoechoic band”, representing the optic nerve. Pulse-wave Doppler was used to record 3 to 5 identical waveforms. The insonation angle was maintained at &lt;20°, the sample gate was set to 2 mm to cover the entire canal at a depth of 3.0 to 4.5 cm, the high-pass filter was set to 50 Hz, and the pulse repetition frequency was set to 125 kHz. Only the right eye was examined, as prior studies have shown no statistically significant difference in blood flow between eyes. The maximum mechanical index allowed was 0.4. The ophthalmic artery waveform was characterized by 2 systolic peaks. The measured indices, including the first and second peak systolic velocity (PSV), RI, PI, and PSV1, were recorded for each of the 3 waveforms, and the average values were calculated for each parameter. PSV represented the highest blood flow velocity during systole, while end-diastolic velocity represented the lowest velocity during diastole. All indices were either automatically calculated by the ultrasound equipment or manually estimated by tracing the spectral waveform. Care was taken to avoid excessive pressure on the eyelid with the transducer during the examination.</p>
+<h2 id="statistical-analysis">Statistical Analysis</h2>
+<p>Statistical analysis was conducted using independent t tests to compare the Doppler indices between the preeclampsia and normal pregnancy groups, based on the data distribution assessed through the Shapiro-Wilk test. For normally distributed variables, the independent t test was applied, while the Mann-Whitney U test was used for non-normally distributed data. Correlation analysis between the RI and PI of the uterine and ophthalmic arteries was performed using the Pearson correlation test for normally distributed data and Spearman rank correlation test for non-normally distributed data. A P value of &lt;0.05 was considered statistically significant, and all analyses were conducted using Graphpad Prism 9.</p>
+<h2 id="results_1">Results</h2>
+<h2 id="patient-characteristics">Patient Characteristics</h2>
+<p>Table 1 shows that there was no significant difference between the demographic data variables of the patients in the preeclampsia group and the normal group, with all P values &gt;0.05. These findings indicated that the distribution of patient characteristics in this study were homogeneous.</p>
+<h2 id="comparison-of-pi-and-ri-of-the-uterine-artery-in-the-normal-pregnancy-and-preeclampsia-groups">Comparison of PI and RI of the Uterine Artery in the Normal Pregnancy and Preeclampsia Groups</h2>
+<p>As shown in Table 2 , the mean PI and RI of the uterine artery in the normal pregnancy group were 0.75±0.17 and 0.49±0.08, respectively. The mean PI and RI of the uterine artery in the preeclampsia group were 1.4±0.44 and 0.71±0.08, respectively. The statistical test results for both study groups show that the PI of the uterine artery was significantly higher in the preeclampsia group than in the normal group, with P &lt;0.0001 (95% CI 0.52–0.86). Additionally, the RI of the uterine artery was significantly higher in the preeclampsia group than in the normal group, with P &lt;0.0001 (95% CI 0.18–0.26).</p>
+<h2 id="comparison-of-pi-and-ri-of-the-ophthalmic-artery-in-the-normal-pregnancy-and-preeclampsia-groups">Comparison of PI and RI of the Ophthalmic Artery in the Normal Pregnancy and Preeclampsia Groups</h2>
+<p>Table 3 shows the results of the independent t test. It was found that the PI of the ophthalmic artery in the preeclampsia group was significantly lower than that in the normal group, with P &lt;0.0001 (95% CI −0.75-0.37). The RI of the ophthalmic artery was also significantly lower in the preeclampsia group than in the normal group, with P &lt;0.0001 (95% CI −0.23 to −0.14). The mean RI of the ophthalmic artery in the normal group was 0.79±0.08, while in the preeclampsia group, it was 0.60±0.08. The table also shows that the peak ratio in the preeclampsia group was significantly higher than that in the normal group, with P &lt;0.0001 (95% CI 0.17–0.30).</p>
+<h2 id="correlation-of-ri-of-the-uterine-and-ophthalmic-artery-in-the-normal-pregnancy-and-preeclampsia-groups">Correlation of RI of the Uterine and Ophthalmic Artery in the Normal Pregnancy and Preeclampsia Groups</h2>
+<p>Table 4 and Figure 1 show a negative correlation with a weak strength of correlation (r=−0.19) that was statistically significant between the RI of the uterine artery and the RI of the ophthalmic artery, with P =0.01 (95% CI −0.51 to −0.18) in the preeclampsia group. In the normal group, there was also a negative correlation between these 2 variables, but it was not statistically significant ( P =0.36; 95% CI −0.50 to 0.20).</p>
+<h2 id="discussion">Discussion</h2>
+<p>Our study found no significant differences in demographic variables between the preeclampsia and normal pregnancy groups (P &gt;0.05), indicating a homogeneous distribution of patient characteristics. Uterine artery Doppler measurements showed significantly PI and RI in the preeclampsia group than in the normal group ( P &lt;0.0001). In contrast, the ophthalmic artery PI and RI were significantly lower in the preeclampsia group ( P &lt;0.0001). The peak ratio was significantly higher in the preeclampsia group ( P &lt;0.0001). A weak but statistically significant negative correlation (r=−0.19, P =0.01) was found between the uterine and ophthalmic artery RI in the preeclampsia group, while the correlation in the normal group was not statistically significant.</p>
+<p>Preeclampsia is one of the leading causes of maternal mortality. The success of preventing its associated morbidity and mortality depends on 3 factors: accurate prediction of onset, accurate prediction of progression, and prevention “ab initio”, meaning prevention from the very beginning or before the issue arises. No known intervention has a significant impact in preventing preeclampsia. Research in this area should focus on improving the ability to predict the occurrence of preeclampsia and its complications. Biomarkers related to preeclampsia have previously shown high predictive value in high-risk preeclampsia cases, but their accuracy remains variable, less economical, and not widely accessible in developing countries, especially in Indonesia [ 6 – 10 ].</p>
+<p>The pathophysiology of preeclampsia varies greatly in terms of onset, severity, and progression. The most widely recognized explanation for this heterogeneity is that insufficient remodeling of the spiral arteries and placental oxidative stress lead to systemic inflammatory responses with widespread endothelial dysfunction, in which the placenta is considered the primary pathogenic agent. However, some studies suggest that this condition is not just a placental disease, especially when there are no abnormal placental histology or poor fetal development. Alternative theories for this syndrome, at least in certain phenotypes, include the possibility that certain maternal cardiovascular variables, such as pre-existing heart dysfunction, may cause placental damage related to maternal cardiovascular maladaptation [ 25 ].</p>
+<p>Endothelial damage is recognized as a key factor in the pathophysiological mechanism of preeclampsia and is a risk factor that enables the occurrence of reversible encephalopathy syndrome. Studies show that this reversible encephalopathy syndrome is associated with increased blood pressure. Recent and popular theories suggest that severe hypertension increases the cerebral autoregulatory threshold and leads to vasodilation, with complications such as brain edema. Identification of cerebral blood flow overflow using ophthalmic artery Doppler ultrasound in patients with preeclampsia can be a marker for brain hemorrhage risk and simultaneously predict the severity of preeclampsia. One method for this is transorbital Doppler sonography, a non-invasive technique used to measure ophthalmic artery perfusion in pregnant women [ 14 , 25 , 26 ]. Based on these issues, using both ophthalmic artery Doppler and uterine artery Doppler seems appropriate, as it aligns with other proposed theories about the pathophysiology of preeclampsia. Studies on patients with preeclampsia almost always show lower PI and RI, along with higher peak velocity ratios and flow, indicating lower cerebrovascular resistance [ 14 , 25 , 26 ].</p>
+<p>Our findings show that, in terms of maternal patient characteristics, including age, parity, and pre-pregnancy body mass index, there was no significant difference between the 2 study groups. This suggests that the groups were homogeneous. Our findings were in line with previous studies, which showed that the higher average maternal age in this study may partially explain the higher incidence of preeclampsia in Indonesia, as noted by Sulistyono et al, who documented an increase in preeclampsia among women aged 30 to 34 years in Indonesia [ 27 ]. The average gestational age of patients with preeclampsia in this study was 32±3.4 weeks, similar to the average gestational age reported in other studies [ 28 , 29 ]. The parity of the research group indicated that 63.3% of patients with preeclampsia were multiparous, which is inconsistent with other literature that reports a higher incidence of preeclampsia in nulliparous women [ 28 , 29 ]. In contrast with our study, previous research has shown that low economic status was associated with pregnancy complications, such as abortion, preterm birth, preeclampsia, eclampsia, and gestational diabetes. This is because women with low economic status are less likely to receive proper antenatal care [ 30 – 33 ]. According to a study by Matsson et al, low income is associated with an increased risk of preeclampsia, with a risk ratio of 1.25 [ 34 ].</p>
+<p>Ultrasound techniques can be used to predict early signs of preeclampsia by providing blood flow readings in Doppler imaging [ 3 ]. The present study documented the pattern of uterine and ophthalmic artery parameters in patients with preeclampsia and compared these values with the normotensive control group, then explored how the correlation between the 2 arteries could predict preeclampsia. The results showed a statistically significant difference in the ophthalmic artery parameters between pregnant women with preeclampsia and the control group. A lower RI (0.60 vs 0.79, P &lt;0.0001) was recorded in patients with preeclampsia than in controls. These findings are consistent with studies by Takata et al, Adekanmi et al, Madina et al, and Ayaz et al [ 14 , 30 – 34 ]. In preeclampsia, severe hypertension exceeds the autoregulatory threshold, leading to vasodilation. Additionally, endothelial dysfunction increases systemic vasodilator secretion, such as nitric oxide, while reducing vasoconstrictor secretion, resulting in subsequent orbital hyperperfusion, due to lower impedance to ocular blood flow. The lower average values for RI and PI indicate much lower impedance to ophthalmic artery blood flow in patients with preeclampsia [ 30 – 34 ].</p>
+<p>The uterine artery RI increases in patients with preeclampsia, while the ophthalmic artery RI decreases. A 2013 study by de Oliveira et al estimated the RI to be 0.75±0.05 in normotensive pregnant women and 0.63±0.09 in patients with preeclampsia [ 33 ]. The study, conducted on 73 patients, confirmed the ophthalmic artery RI as a predictor of preeclampsia during the second trimester. All at-risk patients were included and evaluated with Doppler imaging of the ophthalmic artery between 24 and 28 weeks of gestation, and monitored until the end of pregnancy to verify the development of preeclampsia. The ROC curve was used to determine the predictive characteristics of the ophthalmic artery RI. Among the observed patients, 14 developed preeclampsia, while 59 remained normotensive until delivery. The preeclampsia patients had a lower ophthalmic artery RI (0.68±0.028) than did normotensive patients (0.70±0.029; P= 0.04). Low resistance in the ophthalmic artery is considered a risk factor for the development of preeclampsia, with an area under the curve of 0.69 and a confidence interval of 0.54–0.8.58 [ 33 ].</p>
+<p>Other studies have also concluded that low ophthalmic artery resistance was associated with preeclampsia [ 34 , 35 ]. The present study found that the average RI values for both the ophthalmic and uterine arteries in normotensive and preeclampsia groups did not differ significantly from those reported in previous studies ( Figure 2 ). In an earlier study conducted by Adekanmi et al, an RI cut-off of 0.61 was found to differentiate mild from severe preeclampsia, with 75% sensitivity and 78.8% specificity ( P =0.02) [ 31 ]. Similarly, de Oliveira et al identified a cut-off of 0.63 (sensitivity 73.3%, specificity 88.8%) in a Brazilian population [ 33 ]. The study by Barbosa et al linked an RI of 0.56 to clinical evidence of posterior reversible encephalopathy syndrome in Brazil [ 35 ]. In the present study, we did not calculate a cut-off value, due to time limitations, which is a limitation of this research. The study did not assess the relationship between ophthalmic artery parameters and the severity of neurological symptoms in patients with preeclampsia, as this was not the research objective, and limited research time was another factor. Moreover, the study by Kumari et al [ 23 ] investigated the correlation between ophthalmic artery Doppler parameters and maternal blood pressure in normotensive and preeclamptic pregnancies. Their findings can be compared with our findings. Their study aligns with these findings by demonstrating significant correlations between ophthalmic artery Doppler parameters and maternal blood pressure in normotensive and preeclamptic pregnancies. Specifically, their observation of altered Doppler indices in preeclamptic patients supports the utility of ophthalmic artery Doppler as a predictive and diagnostic tool for preeclampsia [ 23 ]. These comparisons underscore the potential of ophthalmic artery Doppler assessments in the early detection and management of preeclampsia. This is a limitation and becomes a question for future research. However, the findings of the present study add to the growing evidence that there may be significant ocular changes among women with preeclampsia.</p>
+<h2 id="limitations-of-the-study">Limitations of the Study</h2>
+<p>In this study, we did not calculate cut-off values, due to time constraints, which is a limitation of this research. The study did not determine the relationship between ophthalmic artery parameters and the severity of neurological symptoms in patients with preeclampsia, as this was not the objective at the start of the study, and time limitations played a role. Nevertheless, Doppler indices can be affected by maternal factors, such as hydration status, stress, and measurement conditions, potentially introducing variability in the results. Doppler ultrasound is highly operator-dependent, and slight variations in probe placement or angle correction can lead to inconsistencies in measurements. Experienced sonographers and standardization and are essential to minimize errors. This represents limitations and is an area for future research. However, the findings from this study add to the growing body of evidence suggesting significant ocular changes in women with preeclampsia.</p>
+<h2 id="conclusions_1">Conclusions</h2>
+<p>This study showed that PI and RI changes and a significant correlation between uterine and ophthalmic artery RI values reflect systemic endothelial dysfunction in preeclampsia. Therefore, the examination of ophthalmic artery index parameters could be easily and quickly applied as a tool for early detection of preeclampsia, in addition to the uterine artery. However, further research with a larger scale is needed to determine the benefits of applying Doppler of the ophthalmic artery, particularly in assessing the severity of the disease and its complications, rather than just predicting the risk of preeclampsia.</p>
+<h3 id="table-comparison-of-patient-characteristics-between-the-2-groups-based-on-demographic-data">Table: Comparison of patient characteristics between the 2 groups based on demographic data.</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Total (n=60)</th>
+<th>Group</th>
+<th>P value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Normal (n=30)</td>
+<td>Preeclampsia (n=30)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Maternal age</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>≤24 years, n (%)</td>
+<td>21 (35.0)</td>
+<td>12 (40.0)</td>
+<td>9 (30.0)</td>
+</tr>
+<tr>
+<td>25–29 years, n (%)</td>
+<td>16 (26.7)</td>
+<td>10 (33.3)</td>
+<td>6 (20.0)</td>
+</tr>
+<tr>
+<td>30–35 years, n (%)</td>
+<td>23 (38.3)</td>
+<td>8 (26.7)</td>
+<td>15 (50.0)</td>
+</tr>
+<tr>
+<td>Median (min–max)</td>
+<td>27 (16–35)</td>
+<td>26 (17–35)</td>
+<td>30 (16–35)</td>
+</tr>
+<tr>
+<td>Gestational age (weeks)</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>26–28, n (%)</td>
+<td>16 (26.7)</td>
+<td>10 (33.3)</td>
+<td>6 (20.0)</td>
+</tr>
+<tr>
+<td>29–32, n (%)</td>
+<td>25 (41.7)</td>
+<td>14 (46.7)</td>
+<td>11 (36.7)</td>
+</tr>
+<tr>
+<td>33–36, n (%)</td>
+<td>19 (31.6)</td>
+<td>6 (20.0)</td>
+<td>13 (43.3)</td>
+</tr>
+<tr>
+<td>Median (min–max)</td>
+<td>31 (26–36)</td>
+<td>30 (26–35)</td>
+<td>32 (26–36)</td>
+</tr>
+<tr>
+<td>Parity</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Nulliparous, n (%)</td>
+<td>24 (40.0)</td>
+<td>13 (43.3)</td>
+<td>11 (36.7)</td>
+</tr>
+<tr>
+<td>Multiparous, n (%)</td>
+<td>36 (60.0)</td>
+<td>17 (56.7)</td>
+<td>19 (63.3)</td>
+</tr>
+<tr>
+<td>Pre-pregnancy BMI (kg/m 2 )</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Mean (SD)</td>
+<td>26 (5.1)</td>
+<td>26 (5.1)</td>
+<td>26 (5.1)</td>
+</tr>
+<tr>
+<td>Median (min–max)</td>
+<td>26 (18–41)</td>
+<td>26 (18–39)</td>
+<td>26 (19–41)</td>
+</tr>
+<tr>
+<td>Socioeconomy (Income)</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>&lt;Rp.5,000,000, n (%)</td>
+<td>34 (56.7)</td>
+<td>17 (56.7)</td>
+<td>17 (56.7)</td>
+</tr>
+<tr>
+<td>≥Rp. 5,000,000, n (%)</td>
+<td>26 (43.3)</td>
+<td>13 (43.3)</td>
+<td>13 (43.3)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="table-doppler-index-values-of-the-uterine-artery-in-the-2-groups">Table: Doppler index values of the uterine artery in the 2 groups.</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Group</th>
+<th>95% CI</th>
+<th>P value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Normal</td>
+<td>Preeclampsia</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Uterine artery</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>PI mean (mean±SD)</td>
+<td>0.75±0.17</td>
+<td>1.4±0.44</td>
+<td>0.52 to 0.86</td>
+</tr>
+<tr>
+<td>RI mean (mean±SD)</td>
+<td>0.49±0.08</td>
+<td>0.71±0.08</td>
+<td>0.18 to 0.26</td>
+</tr>
+</tbody>
+</table>
+<h3 id="table-pulsatility-index-resistive-index-and-peak-ratio-doppler-values-of-the-ophthalmic-artery-in-the-2-groups">Table: Pulsatility index, resistive index, and peak ratio Doppler values of the ophthalmic artery in the 2 groups.</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Group</th>
+<th>95% CI</th>
+<th>P value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Normal</td>
+<td>Preeclampsia</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Ophthalmic artery</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>PI mean</td>
+<td>2.00±0.45</td>
+<td>1.40±0.25</td>
+<td>−0.75 to −0.37</td>
+</tr>
+<tr>
+<td>RI mean</td>
+<td>0.79±0.08</td>
+<td>0.60±0.08</td>
+<td>−0.23 to −0.14</td>
+</tr>
+<tr>
+<td>PR ( PSV ratio )</td>
+<td>0.52±0.12</td>
+<td>0.75±0.12</td>
+<td>0.17 to 0.30</td>
+</tr>
+<tr>
+<td>PSV1</td>
+<td>42.49 (12.09–141.1)</td>
+<td>68.57 (9.89–533.8)</td>
+<td>31.32 to 105.10</td>
+</tr>
+</tbody>
+</table>
+<h3 id="table-correlation-between-the-resistive-index-doppler-values-of-the-uterine-artery-and-ophthalmic-artery-in-the-preeclampsia-group">Table: Correlation between the resistive index Doppler values of the uterine artery and ophthalmic artery in the preeclampsia group.</h3>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>RI of ophthalmic artery</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>95% CI</td>
+<td>P value</td>
+</tr>
+<tr>
+<td>Preeclampsia</td>
+<td></td>
+</tr>
+<tr>
+<td>RI of uterine artery</td>
+<td>−0.19 (−0.51 to 0.18)</td>
+</tr>
+<tr>
+<td>Normal</td>
+<td></td>
+</tr>
+<tr>
+<td>RI of uterine artery</td>
+<td>−0.17 (−0.50 to 0.20)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="figures">Figures</h2>
+<p><strong>Figure:</strong> Scatter plot of the correlation test between the uterine artery and ophthalmic artery in the preeclampsia and normal groups. RI – resistance index.</p>
+<p><img alt="" src="Hemodynamic_Insights_into_Preeclampsia_Comparing_Ophthalmic_and_Uterine_Artery_Resistive_Indices_/figures/medscimonit-31-e947528-g001.jpg" /></p>
+<p><strong>Figure:</strong> The Doppler ultrasound parameters of a patient at 26 weeks of pregnancy show a high resistance index (RI) of 0.78, with notching in the uterine artery ( A ). The Doppler ultrasound of the ophthalmic artery shows a low RI of 0.67 at 26 weeks of pregnancy ( B ).</p>
+<p><img alt="" src="Hemodynamic_Insights_into_Preeclampsia_Comparing_Ophthalmic_and_Uterine_Artery_Resistive_Indices_/figures/medscimonit-31-e947528-g002.jpg" /></p>
+<h3 id="semantic-scholar-abstract">Semantic Scholar Abstract</h3>
+<p>Background Doppler ultrasonography has emerged as a non-invasive method for evaluating vascular changes in preeclampsia. The ophthalmic artery emerges a novel target for hemodynamic assessment in preeclampsia. This study aimed to compare the Doppler ultrasound pulsatility index (PI) and resistive index (RI). PI and RI in the ophthalmic artery and uterine artery were measured in 60 pregnant women with and without preeclampsia. Material/Methods A cross-sectional design study was conducted to measure Doppler parameters of the uterine and the ophthalmic artery involving 30 participants in preeclampsia and 30 participants in non-preeclampsia groups in West Java from July to September 2024. Doppler ultrasound was performed (Voluson GE S8 BT-equipped with a 7.5 MHz linear transducer, operated by a single maternal-fetal medicine trainee) to measure PI and RI values in the uterine (normal 0.45–0.5) and ophthalmic arteries (normal 0.6–0.7). Bivariate statistical analysis and Pearson correlation tests were performed as further analysis. Results The study found that the uterine artery’s PI and RI were significantly higher in the preeclampsia group than in the normal group (P&lt;0.0001). In contrast, the ophthalmic artery’s PI and RI were significantly lower in the preeclampsia group (P&lt;0.0001). There was a negative correlation between the RI of the uterine artery and ophthalmic artery, with a coefficient value of −0.19 and statistically significance (P=0.01) in the preeclampsia group. Conclusions The findings suggest PI and RI changes and a significant correlation between uterine and ophthalmic artery RI values, reflecting systemic endothelial dysfunction in preeclampsia.</p>
+    </div>
+    
+    <div class="footer">
+        <div class="logo">MedBot</div>
+        <div class="subtitle">Advanced Healthcare AI Assistant</div>
+        <div>Professional medical research analysis and insights</div>
+        <div style="margin-top: 10px; font-size: 0.8rem; opacity: 0.7;">
+            Generated on <span id="current-date-footer"></span>
+        </div>
+    </div>
+    
+    <script>
+        const now = new Date();
+        const dateString = now.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        document.getElementById('current-date').textContent = dateString;
+        document.getElementById('current-date-footer').textContent = dateString;
+    </script>
+</body>
+</html>

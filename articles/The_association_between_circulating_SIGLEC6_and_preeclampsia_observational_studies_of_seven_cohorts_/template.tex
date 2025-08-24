@@ -1,0 +1,69 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{parskip}
+\usepackage{setspace}
+\usepackage{color}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{textcomp}
+\usepackage{upquote}
+\usepackage{microtype}
+
+\geometry{margin=1in}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=green,
+    filecolor=magenta
+}
+
+\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+        % Handle special characters better
+        \DeclareUnicodeCharacter{2212}{-}  % Unicode minus sign
+        \DeclareUnicodeCharacter{2013}{-}  % En dash
+        \DeclareUnicodeCharacter{2014}{-}  % Em dash
+        \DeclareUnicodeCharacter{00D7}{$\times$}  % Multiplication sign
+        \DeclareUnicodeCharacter{00F7}{/}  % Division sign
+        \DeclareUnicodeCharacter{00B1}{$\pm$}  % Plus-minus sign
+        \DeclareUnicodeCharacter{2264}{$\leq$}  % Less than or equal
+        \DeclareUnicodeCharacter{2265}{$\geq$}  % Greater than or equal
+        \DeclareUnicodeCharacter{2260}{$\neq$}  % Not equal
+        \DeclareUnicodeCharacter{2248}{$\approx$}  % Approximately equal
+        \DeclareUnicodeCharacter{00B0}{deg}  % Degree symbol
+        \DeclareUnicodeCharacter{03B1}{$\alpha$}  % Greek alpha
+        \DeclareUnicodeCharacter{03B2}{$\beta$}  % Greek beta
+        \DeclareUnicodeCharacter{03B3}{$\gamma$}  % Greek gamma
+        \DeclareUnicodeCharacter{03B4}{$\delta$}  % Greek delta
+        \DeclareUnicodeCharacter{03BC}{$\mu$}  % Greek mu
+        \DeclareUnicodeCharacter{03C3}{$\sigma$}  % Greek sigma
+        \DeclareUnicodeCharacter{03C4}{$\tau$}  % Greek tau
+        \DeclareUnicodeCharacter{03C7}{$\chi$}  % Greek chi
+
+\begin{document}
+
+\title{Research Article}
+\author{MedBot Article Fetcher}
+\date{\today}
+\maketitle
+
+\tableofcontents
+\newpage
+

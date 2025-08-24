@@ -31,6 +31,8 @@ dependencies = [
     "lxml>=6.0.1",
     "pypandoc>=1.15",
     "pandoc>=2.4",
+    "weasyprint",
+    "reportlab",
 ]
 requires-python = ">=3.9,<4.0"
 

@@ -5,7 +5,6 @@ from pathlib import Path
 import os
 import json
 from urllib.parse import quote
-import pypandoc
 
 # ==== CONFIG ====
 SAVE_ROOT = Path("articles")
@@ -136,21 +135,15 @@ def parse_full_text(xml_text: str, pmcid: str, article_dir: Path) -> str:
     return "\n".join(md)
 
 # ==== Save Markdown & PDF ====
-def save_markdown_and_pdf(article_dir: Path, markdown_content: str):
+def save_markdown_only(article_dir: Path, markdown_content: str):
+    """Save only the markdown file - PDF conversion handled separately"""
     md_file = article_dir / "article.md"
-    pdf_file = article_dir / "article.pdf"
-
+    
     # Save Markdown
     with open(md_file, "w", encoding="utf-8") as f:
         f.write(markdown_content)
     print(f"✅ Markdown saved: {md_file}")
-
-    # Convert Markdown → PDF
-    try:
-        pypandoc.convert_text(markdown_content, "pdf", format="md", outputfile=str(pdf_file), extra_args=["--standalone"])
-        print(f"✅ PDF saved: {pdf_file}")
-    except Exception as e:
-        print(f"❌ PDF conversion failed: {e}")
+    print(f"💡 To convert to PDF, use: python md_to_pdf_converter.py {md_file}")
 
 # ==== Main Fetcher ====
 def fetch_article(identifier: str):
@@ -198,8 +191,8 @@ def fetch_article(identifier: str):
     # Combine Markdown
     md_final = "\n".join(md_parts)
 
-    # Save Markdown & PDF
-    save_markdown_and_pdf(article_dir, md_final)
+    # Save Markdown only
+    save_markdown_only(article_dir, md_final)
 
     print("🎉 Done!")
 
