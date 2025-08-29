@@ -195,6 +195,9 @@ def fetch_article(identifier: str):
     save_markdown_only(article_dir, md_final)
 
     print("🎉 Done!")
+    
+    # Return the article directory path for further processing
+    return str(article_dir)
 
 # ==== Run ====
 if __name__ == "__main__":

@@ -183,7 +183,7 @@ st.markdown("""
     }
     
     .disclaimer {
-        background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+        background: linear-gradient (135deg, #ffeaa7 0%, #fab1a0 100%);
         border-left: 5px solid #e17055;
         padding: 1rem;
         border-radius: 10px;
@@ -706,7 +706,7 @@ Please ensure the response is comprehensive, accurate, and tailored to their spe
 """
         return enhanced_prompt
     
-    def create_context_enhanced_prompt(self, user_message, detail_level, response_format, rag_context):
+    def create_context_enhanced_prompt(self, user_message, detail_level, response_format, rag_context, chat_history):
         """Create a prompt that uses RAG context and Azure model for comprehensive responses"""
         
         detail_instructions = {
@@ -722,6 +722,74 @@ Please ensure the response is comprehensive, accurate, and tailored to their spe
             'narrative': "Provide your response in a flowing, narrative style that's easy to follow."
         }
         
+        # Check if this is a detail request
+        is_detail_request = any(pattern in user_message.lower() for pattern in ['explain in detail', 'explain further', 'tell me more', 'please explain'])
+        
+        # Format chat history for context
+        chat_history_context = ""
+        if chat_history and len(chat_history) > 0:
+            # Get the last few messages for context (avoid overwhelming the prompt)
+            recent_messages = chat_history[-3:]  # Last 3 messages
+            chat_history_context = "\n\n**RECENT CONVERSATION CONTEXT:**\n"
+            
+            # Find the last medical question to combine with follow-up
+            last_medical_question = ""
+            for msg in reversed(recent_messages):
+                if msg.get('role') == 'user':
+                    content = msg.get('content', '').lower()
+                    # Check if this was a medical question
+                    if any(term in content for term in ['microbiology', 'medical', 'health', 'disease', 'treatment', 'symptom', 'what is', 'tell me about', 'explain']):
+                        last_medical_question = msg.get('content', '')
+                        break
+            
+            # If this is a follow-up question, combine it with the last medical question
+            follow_up_patterns = [
+                'explain in detail', 'explain further', 'tell me more',
+                'can you clarify', 'i don\'t understand', 'how does this work',
+                'why is this important', 'give me examples', 'show me',
+                'demonstrate', 'illustrate', 'describe', 'break down',
+                'simplify', 'summarize', 'recap', 'please explain',
+                'explain it', 'explain this', 'explain that'
+            ]
+            
+            is_follow_up = any(pattern in user_message.lower() for pattern in follow_up_patterns)
+            
+            if is_follow_up and last_medical_question:
+                chat_history_context += f"**FOLLOW-UP CONTEXT:** This is a follow-up question to: '{last_medical_question}'\n\n"
+                if is_detail_request:
+                    chat_history_context += "**DETAIL REQUEST:** The user is asking for an extremely detailed explanation. Provide the most comprehensive response possible.\n\n"
+            
+            # Add recent conversation context
+            for i, msg in enumerate(recent_messages, 1):
+                role = "User" if msg.get('role') == 'user' else "Assistant"
+                content = msg.get('content', '')[:300] + "..." if len(msg.get('content', '')) > 300 else msg.get('content', '')
+                chat_history_context += f"{i}. {role}: {content}\n"
+        
+        # Enhanced detail instructions for detail requests
+        detail_enhancement = ""
+        if is_detail_request:
+            detail_enhancement = """
+**EXTREME DETAIL REQUIREMENTS:**
+- This is a "explain in detail" request - provide the MOST comprehensive response possible
+- Use detailed PARAGRAPHS, not bullet points or summaries
+- Include extensive examples, case studies, and real-world applications
+- Break down every concept into multiple detailed explanations with substantial paragraphs
+- Use detailed tables, lists, and structured information where appropriate
+- Include historical context and evolution of knowledge
+- Provide multiple perspectives and approaches
+- Include technical details while maintaining accessibility
+- Use extensive markdown formatting for optimal structure
+- Provide actionable insights and practical recommendations
+- Include cross-references to related topics and concepts
+- Address edge cases and exceptions
+- Provide step-by-step explanations for complex processes
+- Include statistical data and research findings when relevant
+- Use analogies and metaphors to enhance understanding
+- Provide both beginner and advanced level information
+- Include troubleshooting guides and common problems
+- Provide comprehensive resource lists and references
+- Write in a conversational, educational tone like a knowledgeable healthcare professional"""
+        
         # Create a comprehensive prompt that uses RAG context
         context_enhanced_prompt = f"""
 **🧠 COMPREHENSIVE MEDICAL ANALYSIS REQUEST:**
@@ -729,7 +797,7 @@ Please ensure the response is comprehensive, accurate, and tailored to their spe
 **USER QUESTION:** {user_message}
 
 **AVAILABLE MEDICAL CONTEXT (RAG System):**
-{rag_context}
+{rag_context}{chat_history_context}
 
 **RESPONSE REQUIREMENTS:**
 - Detail Level: {detail_level} - {detail_instructions[detail_level]}
@@ -740,22 +808,67 @@ Please ensure the response is comprehensive, accurate, and tailored to their spe
 - Provide actionable insights and recommendations when applicable
 - Use evidence-based information and cite the sources
 - Structure the response for optimal readability and understanding
-- Make the response comprehensive and educational
+- Make the response comprehensive and educational{detail_enhancement}
 
 **INSTRUCTIONS FOR AZURE MODEL:**
 You are a medical AI specialist. Use the provided RAG context as your foundation, then expand it into a comprehensive, well-structured medical response. 
 The response should be {detail_level} and formatted in {response_format} style.
-Combine the context information with your medical knowledge to create a massive, well-explained response that covers:
+Combine the context information with your medical knowledge to create a MASSIVE, well-explained response that covers:
+
+**STANDARD SECTIONS:**
 1. **Definition and Overview** - Clear explanation of the medical concept
 2. **Causes and Risk Factors** - Detailed analysis of contributing factors
 3. **Symptoms and Clinical Presentation** - Comprehensive symptom description
-4. **Diagnosis and Testing** - Available diagnostic methods
+4. **Diagnosis and Testing** - Available diagnostic methods and procedures
 5. **Treatment Options** - Current treatment approaches and recommendations
 6. **Prevention and Management** - Preventive measures and ongoing care
 7. **Prognosis and Outlook** - Expected outcomes and long-term considerations
 8. **Additional Resources** - Where to find more information
 
-Ensure the response is comprehensive, accurate, and provides immense value to the user.
+**EXTRA DETAIL SECTIONS (for detail requests):**
+9. **Research and Latest Developments** - Current findings and future directions
+10. **Case Studies and Examples** - Real-world applications and scenarios
+11. **Common Misconceptions** - Addressing myths and clarifying misunderstandings
+12. **Global and Public Health Perspectives** - Worldwide impact and implications
+13. **Technical Deep-Dive** - Advanced concepts and detailed mechanisms
+14. **Comparative Analysis** - How this relates to other medical concepts
+15. **Practical Applications** - Step-by-step guides and troubleshooting
+
+**CRITICAL FORMATTING REQUIREMENTS:**
+- Use detailed PARAGRAPHS for explanations, not bullet points or summaries
+- Each section should have 3-5 detailed paragraphs explaining the concepts thoroughly
+- Use bullet points ONLY for lists of items (e.g., types of bacteria, symptoms)
+- Write in a conversational, educational tone like a knowledgeable healthcare professional
+- Include detailed explanations, examples, and context for every concept
+- Use tables where appropriate for structured data comparison
+- Create clear visual hierarchy with headers and subheaders
+- Ensure each section provides substantial, helpful information
+
+**FORMATTING REQUIREMENTS:**
+- Use extensive markdown formatting (headers, subheaders, detailed paragraphs)
+- Include tables where appropriate for structured data
+- Use bold and italic text for emphasis
+- Create clear visual hierarchy and organization
+- Use code blocks for technical information when relevant
+- Ensure excellent readability and structure
+
+**CONTEXT AWARENESS:**
+- If this is a follow-up question, build upon the previous conversation context
+- Maintain conversation continuity and reference earlier points
+- If the user asks for "more detail" or "explain further", expand on the most relevant aspects
+- Ensure the response directly addresses what the user is asking for
+
+**DETAIL LEVEL ADJUSTMENT:**
+- For "explain in detail" requests, provide the MOST comprehensive response possible
+- Include extensive examples, case studies, and real-world applications
+- Break down every concept into multiple detailed explanations with substantial paragraphs
+- Provide both basic and advanced information
+- Include troubleshooting guides and common problems
+- Write detailed, educational explanations that a healthcare professional would provide
+
+**IMPORTANT:** This is NOT a summarizer. This is a detailed healthcare chatbot that provides comprehensive, helpful explanations. Each section should contain detailed paragraphs that thoroughly explain the concepts, provide examples, and give practical insights. Avoid bullet-point summaries - instead, write detailed, educational explanations that a healthcare professional would provide to a patient.
+
+Ensure the response is comprehensive, accurate, and provides immense value to the user while maintaining a warm, professional tone. For detail requests, make this the most thorough and detailed response possible with substantial paragraphs, not summaries.
 """
         return context_enhanced_prompt
     
@@ -782,16 +895,18 @@ Ensure the response is comprehensive, accurate, and provides immense value to th
             return None
     
     def get_azure_enhanced_response(self, context_enhanced_prompt):
-        """Get enhanced response from Azure OpenAI"""
+        """Get enhanced response from Azure OpenAI with chat history context"""
         try:
-            # This would call Azure OpenAI directly for comprehensive response generation
-            # For now, we'll simulate this by using the existing API with enhanced prompt
+            # Include chat history for context-aware responses
+            chat_history = st.session_state.chat_history if 'chat_history' in st.session_state else []
+            
             payload = {
                 "message": context_enhanced_prompt,
                 "user_id": f"user_{int(time.time())}",
                 "conversation_id": st.session_state.current_chat_id,
                 "use_azure_enhancement": True,
-                "generate_comprehensive_response": True
+                "generate_comprehensive_response": True,
+                "chat_history": chat_history  # Pass chat history for context
             }
             
             response = requests.post(self.api_url, json=payload, timeout=60)  # Longer timeout for comprehensive responses
@@ -1427,15 +1542,16 @@ This response combines your medical knowledge base (RAG context) with Azure's in
                                 rag_context = self.format_rag_context(rag_response.get('relevant_chunks'))
                                 sources = rag_response.get('sources', [])
                                 
-                                # Step 2: Create context-enhanced prompt for Azure
+                                # Step 2: Create context-enhanced prompt for Azure with chat history
                                 context_enhanced_prompt = self.create_context_enhanced_prompt(
                                     user_input,
                                     st.session_state.user_preferences['detail_level'],
                                     st.session_state.user_preferences['response_format'],
-                                    rag_context
+                                    rag_context,
+                                    st.session_state.chat_history  # Pass chat history for context
                                 )
                                 
-                                # Step 3: Get comprehensive Azure-enhanced response
+                                # Step 3: Get comprehensive Azure-enhanced response with chat history
                                 with st.spinner("🧠 MedBot thinking..."):
                                     azure_response = self.get_azure_enhanced_response(context_enhanced_prompt)
                                 

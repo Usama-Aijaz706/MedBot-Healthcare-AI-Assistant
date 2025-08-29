@@ -28,15 +28,27 @@ class LLMProvider:
         
         # Debug: Print available API keys
         logger.info(f"Available API keys:")
-        logger.info(f"  Groq: {'✅' if self.groq_api_key else '❌'}")
+        logger.info(f"  Groq (via Azure key): {'✅' if self.azure_openai_key else '❌'}")
         logger.info(f"  Gemini: {'✅' if self.gemini_api_key else '❌'}")
         logger.info(f"  Azure OpenAI: {'✅' if self.azure_openai_key else '❌'}")
         logger.info(f"  HuggingFace: {'✅' if self.hf_token else '❌'}")
         logger.info(f"  Azure Endpoint: {'✅' if self.endpoint_url else '❌'}")
         
-        # Default to Groq if available
-        self.default_provider = 'groq' if self.groq_api_key else 'gemini' if self.gemini_api_key else 'huggingface'
+        # Default to Azure OpenAI if available, then Groq, then Gemini, then HuggingFace
+        if self.azure_openai_key and self.endpoint_url:
+            self.default_provider = 'azure'
+        elif self.azure_openai_key:
+            self.default_provider = 'groq'
+        elif self.gemini_api_key:
+            self.default_provider = 'gemini'
+        else:
+            self.default_provider = 'huggingface'
+        
         logger.info(f"LLM Provider initialized. Default: {self.default_provider}")
+        if self.default_provider == 'azure':
+            logger.info("Using Azure OpenAI with GPT-4o model")
+        elif self.default_provider == 'groq':
+            logger.info("Using Groq with GPT OSS model")
     
     def generate_response(self, prompt: str, provider: str = None) -> str:
         """Generate response using the specified LLM provider."""
@@ -44,8 +56,8 @@ class LLMProvider:
             provider = self.default_provider
             
         try:
-            if provider == 'groq' and self.groq_api_key:
-                return self._call_groq(prompt)
+            if provider == 'groq' and self.azure_openai_key: 
+                return self._call_azure_openai(prompt)  
             elif provider == 'gemini' and self.gemini_api_key:
                 return self._call_gemini(prompt)
             elif provider == 'azure' and self.azure_openai_key:
@@ -78,8 +90,8 @@ class LLMProvider:
                     {"role": "user", "content": prompt}
                 ],
                 model="openai/gpt-oss-20b",
-                temperature=0.7,
-                max_tokens=1500
+                temperature=0,
+                max_tokens=4000
             )
             
             return response.choices[0].message.content
@@ -109,30 +121,34 @@ class LLMProvider:
             return self._fallback_response(prompt)
     
     def _call_azure_openai(self, prompt: str) -> str:
-        """Call Azure OpenAI API for prompt enrichment."""
+        """Call Azure OpenAI API with GPT-4o model."""
         try:
             from openai import AzureOpenAI
             
-            # Use the correct environment variable name
             api_key = os.getenv('AZURE_OPENAI_API_KEY')
+            endpoint = os.getenv('ENDPOINT_URL')
+            
             if not api_key:
                 raise ValueError("AZURE_OPENAI_API_KEY not found in environment variables")
+            if not endpoint:
+                raise ValueError("ENDPOINT_URL not found in environment variables")
             
+            # Use Azure OpenAI client
             client = AzureOpenAI(
                 api_key=api_key,
-                api_version="2024-02-15-preview",
-                azure_endpoint=self.endpoint_url
+                azure_endpoint=endpoint,
+                api_version="2024-02-15-preview"  # Latest version for GPT-4o
             )
             
-            # Use gpt-4o for prompt enrichment (more powerful and accurate)
+            # Use GPT-4o model as requested
             response = client.chat.completions.create(
-                model="gpt-4o",
+                model="gpt-4o",  # GPT-4o model
                 messages=[
-                    {"role": "system", "content": "You are a medical knowledge enrichment specialist. Your task is to enhance medical questions with relevant information from medical sources."},
+                    {"role": "system", "content": self._get_system_prompt()},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.3,  # Lower temperature for more consistent enrichment
-                max_tokens=4000
+                temperature=0,  
+                max_tokens=6000
             )
             
             return response.choices[0].message.content
@@ -153,8 +169,8 @@ class LLMProvider:
             payload = {
                 "inputs": f"{self._get_system_prompt()}\n\n{prompt}",
                 "parameters": {
-                    "max_new_tokens": 1000,
-                    "temperature": 0.7,
+                    "max_new_tokens": 2000,
+                    "temperature": 0,
                     "do_sample": True
                 }
             }
@@ -309,7 +325,7 @@ class RAGSystem:
             logger.error(f"Error initializing knowledge base: {e}")
             return False
     
-    def query_knowledge_base(self, user_question: str, top_k: int = 5, llm_provider: str = None) -> Dict[str, Any]:
+    def query_knowledge_base(self, user_question: str, top_k: int = 5, llm_provider: str = None, chat_history: List[Dict] = None) -> Dict[str, Any]:
         """
         Query the knowledge base using RAG techniques.
         This implements the right side of the RAG workflow diagram.
@@ -321,8 +337,18 @@ class RAGSystem:
                 "suggestion": "Run initialize_knowledge_base() first"
             }
         
-        # Step 0: Healthcare Query Filtering
-        if not self._is_healthcare_query(user_question):
+        # Step 0: Validate follow-up context if this is a follow-up question
+        follow_up_validation = self._validate_follow_up_context(user_question, chat_history)
+        if not follow_up_validation["valid"]:
+            return {
+                "success": False,
+                "error": follow_up_validation["error"],
+                "suggestion": follow_up_validation["suggestion"],
+                "question": user_question
+            }
+        
+        # Step 1: Healthcare Query Filtering
+        if not self._is_healthcare_query(user_question, chat_history):
             return {
                 "success": False,
                 "error": "Non-healthcare query detected",
@@ -333,12 +359,12 @@ class RAGSystem:
         try:
             logger.info(f"Processing healthcare question: {user_question[:100]}...")
             
-            # Step 1: Embed the user question
-            logger.info("Step 1: Embedding user question...")
+            # Step 2: Embed the user question
+            logger.info("Step 2: Embedding user question...")
             # (This is handled internally by the embedding system)
             
-            # Step 2: Perform semantic similarity search
-            logger.info("Step 2: Performing semantic similarity search...")
+            # Step 3: Perform semantic similarity search
+            logger.info("Step 3: Performing semantic similarity search...")
             relevant_chunks = self.embedding_system.search_similar_chunks(user_question, top_k)
             
             if not relevant_chunks:
@@ -349,12 +375,12 @@ class RAGSystem:
                     "question": user_question
                 }
             
-            # Step 3: Prepare context for LLM
-            logger.info("Step 3: Preparing context for LLM...")
+            # Step 4: Prepare context for LLM
+            logger.info("Step 4: Preparing context for LLM...")
             context = self._prepare_context(relevant_chunks)
             
-            # Step 4: Generate response using LLM
-            logger.info("Step 4: Generating response using LLM...")
+            # Step 5: Generate response using LLM
+            logger.info("Step 5: Generating response using LLM...")
             response = self._generate_llm_response(user_question, context, relevant_chunks, llm_provider)
             
             return {
@@ -364,7 +390,8 @@ class RAGSystem:
                 "relevant_chunks": relevant_chunks,
                 "context_length": len(context),
                 "chunks_used": len(relevant_chunks),
-                "llm_provider": llm_provider or self.llm_provider.default_provider
+                "llm_provider": llm_provider or self.llm_provider.default_provider,
+                "follow_up_type": follow_up_validation["type"]
             }
             
         except Exception as e:
@@ -394,14 +421,69 @@ class RAGSystem:
         
         return "\n".join(context_parts)
     
-    def _is_healthcare_query(self, query: str) -> bool:
-        """Check if the query is healthcare-related."""
+    def _is_healthcare_query(self, query: str, chat_history: List[Dict] = None) -> bool:
+        """Check if the query is healthcare-related with context awareness."""
         query_lower = query.lower()
         
         # Debug logging
         logger.info(f"🔍 Checking if query is healthcare-related: '{query}' -> '{query_lower}'")
         
-        # Comprehensive healthcare keywords
+        # FIRST: Check for truly problematic non-medical patterns that should NEVER work
+        problematic_patterns = [
+            'what is the weather', 'what is the capital', 'how to cook',
+            'what is the time', 'what is the date', 'who is the president',
+            'what is the population', 'what is the currency', 'how to drive'
+        ]
+        
+        for pattern in problematic_patterns:
+            if pattern in query_lower:
+                logger.info(f"❌ Problematic non-medical pattern detected: '{pattern}' - will not work")
+                return False
+        
+        # SECOND: Check if this is a follow-up question that should work with medical context
+        if chat_history and len(chat_history) > 0:
+            # Look at recent messages to see if we're in a medical conversation
+            recent_messages = chat_history[-3:]  # Last 3 messages
+            medical_context_found = False
+            last_medical_query = ""
+            
+            for msg in recent_messages:
+                if msg.get('role') == 'user':
+                    content = msg.get('content', '').lower()
+                    # Check if the user asked a medical question
+                    if any(term in content for term in ['microbiology', 'medical', 'health', 'disease', 'treatment', 'symptom', 'what is', 'tell me about', 'explain']):
+                        medical_context_found = True
+                        last_medical_query = msg.get('content', '')
+                        break
+                elif msg.get('role') == 'assistant':
+                    content = msg.get('content', '').lower()
+                    # Check if the assistant gave a medical response
+                    if any(term in content for term in ['microbiology', 'medical', 'health', 'disease', 'treatment', 'symptom']):
+                        medical_context_found = True
+                        break
+            
+            # If we're in a medical conversation, allow follow-up questions
+            if medical_context_found:
+                # Check if this is a legitimate follow-up pattern
+                follow_up_patterns = [
+                    'explain in detail', 'explain further', 'tell me more',
+                    'can you clarify', 'i don\'t understand', 'how does this work',
+                    'why is this important', 'give me examples', 'show me',
+                    'demonstrate', 'illustrate', 'describe', 'break down',
+                    'simplify', 'summarize', 'recap', 'please explain',
+                    'explain it', 'explain this', 'explain that'
+                ]
+                
+                for pattern in follow_up_patterns:
+                    if pattern in query_lower:
+                        logger.info(f"✅ Legitimate follow-up question in medical context: '{pattern}' - will work with chat history")
+                        return True
+                
+                # If it's not a clear follow-up pattern but we have medical context, still allow it
+                logger.info("✅ Question in medical conversation context - treating as medical")
+                return True
+        
+        # THIRD: Check for comprehensive healthcare keywords
         healthcare_keywords = [
             # Basic medical terms
             'health', 'medical', 'medicine', 'doctor', 'hospital', 'clinic',
@@ -493,9 +575,8 @@ class RAGSystem:
         # Check for common medical prefixes and suffixes
         medical_affixes = [
             'bio', 'micro', 'macro', 'endo', 'exo', 'hyper', 'hypo',
-            'anti', 'pre', 'post', 'sub', 'super', 'ultra', 'multi',
-            'itis', 'osis', 'emia', 'oma', 'pathy', 'algia', 'plegia',
-            'rrhagia', 'rrhea', 'stenosis', 'ectasia', 'megaly', 'penia'
+            'anti', 'pro', 'pre', 'post', 'sub', 'super', 'ultra',
+            'itis', 'osis', 'emia', 'oma', 'pathy', 'algia', 'dynia'
         ]
         
         for affix in medical_affixes:
@@ -503,48 +584,31 @@ class RAGSystem:
                 logger.info(f"✅ Medical affix detected: '{affix}' in query")
                 return True
         
-        # Check for single-word medical queries (common medical terms)
-        single_word_medical = [
-            'microbiology', 'biology', 'radiology', 'pathology', 'immunology',
-            'oncology', 'cardiology', 'neurology', 'dermatology', 'orthopedics',
-            'ophthalmology', 'gynecology', 'urology', 'endocrinology',
-            'gastroenterology', 'pulmonology', 'hematology', 'nephrology',
-            'rheumatology', 'psychiatry', 'pediatrics', 'geriatrics',
-            'anatomy', 'physiology', 'biochemistry', 'genetics', 'pharmacology',
-            'epidemiology', 'virology', 'bacteriology', 'parasitology', 'mycology'
-        ]
-        
-        # Remove spaces and check if it's a single medical term
-        query_clean = query_lower.replace(' ', '').replace('-', '')
-        for term in single_word_medical:
-            if term in query_clean:
-                logger.info(f"✅ Single medical term detected: '{term}' in query")
-                return True
-        
-        logger.info(f"❌ Query '{query}' not detected as healthcare-related")
+        # If no medical indicators found, it's not a healthcare query
+        logger.info("❌ No healthcare indicators found - treating as non-medical query")
         return False
     
     def _generate_llm_response(self, question: str, context: str, relevant_chunks: List[Dict], llm_provider: str = None) -> str:
         """
-        Generate response using Azure API for prompt enrichment + Groq API for final response.
+        Generate response using Azure OpenAI API for both prompt enrichment and final response generation.
         This implements the "Generate Response (LLM)" part of the workflow.
         """
         
         # Prepare the rich prompt for the LLM
         sources = list(set(chunk['metadata']['source'] for chunk in relevant_chunks))
         
-        # Step 1: Use Azure API to enrich the prompt with retrieved information
+        # Step 1: Use Azure OpenAI API to enrich the prompt with retrieved information
         enriched_prompt = self._enrich_prompt_with_azure(question, context, relevant_chunks)
         
         # Log the enhanced prompt for debugging
-        logger.info(f"Enhanced prompt created by Azure:")
+        logger.info(f"Enhanced prompt created by Azure OpenAI:")
         logger.info(f"Length: {len(enriched_prompt)} characters")
         logger.info(f"Preview: {enriched_prompt[:200]}...")
         
-        # Step 2: Use Groq API with enriched prompt for final response
+        # Step 2: Use Azure OpenAI API with enriched prompt for final response
         try:
-            logger.info("Calling Groq API with enhanced prompt...")
-            response = self.llm_provider.generate_response(enriched_prompt, "groq")
+            logger.info("Calling Azure OpenAI API with enhanced prompt...")
+            response = self.llm_provider.generate_response(enriched_prompt, "azure")
             
             # Add source citations if not already included
             if not any(source in response for source in sources):
@@ -559,10 +623,10 @@ class RAGSystem:
                 response += disclaimer
             
             # Add the enhanced prompt to the response for transparency
-            full_response = f"""**ENHANCED PROMPT (Generated by Azure):**
+            full_response = f"""**ENHANCED PROMPT (Generated by Azure OpenAI):**
 {enriched_prompt}
 
-**FINAL RESPONSE (Generated by Groq):**
+**FINAL RESPONSE (Generated by Azure OpenAI):**
 {response}"""
             
             return full_response
@@ -573,11 +637,11 @@ class RAGSystem:
             return self._generate_fallback_response(question, context, relevant_chunks)
     
     def _enrich_prompt_with_azure(self, question: str, context: str, relevant_chunks: List[Dict]) -> str:
-        """Use Azure API to enrich the prompt with retrieved medical knowledge."""
+        """Use Azure OpenAI API to enrich the prompt with retrieved medical knowledge."""
         try:
             sources = list(set(chunk['metadata']['source'] for chunk in relevant_chunks))
             
-            # Create the enrichment prompt for Azure
+            # Create the enrichment prompt for Azure OpenAI
             enrichment_prompt = f"""You are a medical knowledge enrichment specialist. Your task is to enhance a user's medical question with relevant information from medical sources.
 
 User Question: {question}
@@ -595,18 +659,18 @@ Your task: Analyze the retrieved medical knowledge and create an enriched, compr
 
 Create a comprehensive, enriched prompt that combines the user's question with the retrieved medical knowledge in a way that will help generate the most accurate and helpful medical response."""
 
-            # Use Azure API to enrich the prompt
+            # Use Azure OpenAI API to enrich the prompt
             enriched_prompt = self.llm_provider._call_azure_openai(enrichment_prompt)
             
-            # If Azure fails, return the original enriched prompt
+            # If Azure OpenAI fails, return the original enriched prompt
             if not enriched_prompt or "error" in enriched_prompt.lower():
-                logger.warning("Azure API enrichment failed, using fallback enrichment")
+                logger.warning("Azure OpenAI API enrichment failed, using fallback enrichment")
                 return self._create_fallback_enriched_prompt(question, context, relevant_chunks)
             
             return enriched_prompt
             
         except Exception as e:
-            logger.error(f"Error enriching prompt with Azure: {e}")
+            logger.error(f"Error enriching prompt with Azure OpenAI: {e}")
             return self._create_fallback_enriched_prompt(question, context, relevant_chunks)
     
     def _create_fallback_enriched_prompt(self, question: str, context: str, relevant_chunks: List[Dict]) -> str:
@@ -637,7 +701,7 @@ Use the retrieved medical knowledge above to:
 This enriched context combines the user's specific question with verified medical knowledge from authoritative sources to ensure the most accurate and helpful response possible."""
     
     def _generate_fallback_response(self, question: str, context: str, relevant_chunks: List[Dict]) -> str:
-        """Generate fallback response when LLM fails."""
+        """Generate fallback response when Azure OpenAI API fails."""
         sources = list(set(chunk['metadata']['source'] for chunk in relevant_chunks))
         
         response = f"""Based on the medical knowledge base, here's what I found regarding your question:
@@ -762,8 +826,8 @@ I've found relevant information from {len(relevant_chunks)} medical sources that
                 "error": str(e)
             }
     
-    def generate_azure_enhanced_response(self, question: str, user_name: str = None) -> Dict[str, Any]:
-        """Generate comprehensive response using Azure OpenAI with RAG context and user personalization."""
+    def generate_azure_enhanced_response(self, question: str, user_name: str = None, chat_history: List[Dict] = None) -> Dict[str, Any]:
+        """Generate comprehensive response using Azure OpenAI with RAG context, user personalization, and chat history."""
         try:
             if not self.knowledge_base_initialized:
                 return {
@@ -783,8 +847,8 @@ I've found relevant information from {len(relevant_chunks)} medical sources that
             # Create context from chunks
             context = self._prepare_context(relevant_chunks)
             
-            # Generate comprehensive response using Azure with user personalization
-            comprehensive_prompt = self._create_comprehensive_prompt(question, context, user_name)
+            # Generate comprehensive response using Azure with user personalization and chat history
+            comprehensive_prompt = self._create_comprehensive_prompt(question, context, user_name, chat_history)
             
             try:
                 azure_response = self.llm_provider._call_azure_openai(comprehensive_prompt)
@@ -795,7 +859,8 @@ I've found relevant information from {len(relevant_chunks)} medical sources that
                     "relevant_chunks": relevant_chunks,
                     "chunks_used": len(relevant_chunks),
                     "context_used": context[:500] + "..." if len(context) > 500 else context,
-                    "user_name": user_name
+                    "user_name": user_name,
+                    "chat_history_used": len(chat_history) if chat_history else 0
                 }
                 
             except Exception as e:
@@ -809,7 +874,8 @@ I've found relevant information from {len(relevant_chunks)} medical sources that
                     "chunks_used": len(relevant_chunks),
                     "context_used": context[:500] + "..." if len(context) > 500 else context,
                     "note": "Azure OpenAI unavailable, using fallback response",
-                    "user_name": user_name
+                    "user_name": user_name,
+                    "chat_history_used": len(chat_history) if chat_history else 0
                 }
                 
         except Exception as e:
@@ -846,7 +912,7 @@ I've found relevant information from {len(relevant_chunks)} medical sources that
         return None
     
     def _generate_fallback_response(self, question: str, context: str, relevant_chunks: List[Dict], user_name: str = None) -> str:
-        """Generate fallback response when LLM fails, with user personalization."""
+        """Generate fallback response when Azure OpenAI API fails, with user personalization."""
         sources = list(set(chunk['metadata']['source'] for chunk in relevant_chunks))
         
         # Personalize the response if user name is available
@@ -878,22 +944,82 @@ I've found relevant information from {len(relevant_chunks)} medical sources that
         
         return response
     
-    def _create_comprehensive_prompt(self, question: str, context: str, user_name: str = None) -> str:
-        """Create a comprehensive prompt for Azure OpenAI with user personalization."""
+    def _create_comprehensive_prompt(self, question: str, context: str, user_name: str = None, chat_history: List[Dict] = None) -> str:
+        """Create a comprehensive prompt for Azure OpenAI with user personalization and context awareness."""
         
         # Personalize the prompt if user name is available
         personalization = f"Hello {user_name}! " if user_name else ""
         
-        return f"""{personalization}You are a medical AI specialist. Use the following medical context to provide a comprehensive, well-structured response to the user's question.
-
-**USER QUESTION:** {question}
-
-**MEDICAL CONTEXT (RAG System):**
-{context}
-
-**INSTRUCTIONS:**
-Create a massive, well-explained, and structured medical response that covers:
-
+        # Analyze if this is a medical query that needs medical help sections
+        is_medical_query = self._is_healthcare_query(question, chat_history)
+        
+        # Add chat history context if available
+        chat_context = ""
+        combined_question = question
+        
+        if chat_history and len(chat_history) > 0:
+            # Get the last few messages for context
+            recent_messages = chat_history[-3:]  # Last 3 messages
+            chat_context = "\n\n**CHAT HISTORY CONTEXT:**\n"
+            
+            # Find the last medical question to combine with follow-up
+            last_medical_question = ""
+            for msg in reversed(recent_messages):
+                if msg.get('role') == 'user':
+                    content = msg.get('content', '').lower()
+                    # Check if this was a medical question
+                    if any(term in content for term in ['microbiology', 'medical', 'health', 'disease', 'treatment', 'symptom', 'what is', 'tell me about', 'explain']):
+                        last_medical_question = msg.get('content', '')
+                        break
+            
+            # If this is a follow-up question, combine it with the last medical question
+            follow_up_patterns = [
+                'explain in detail', 'explain further', 'tell me more',
+                'can you clarify', 'i don\'t understand', 'how does this work',
+                'why is this important', 'give me examples', 'show me',
+                'demonstrate', 'illustrate', 'describe', 'break down',
+                'simplify', 'summarize', 'recap', 'please explain',
+                'explain it', 'explain this', 'explain that'
+            ]
+            
+            is_follow_up = any(pattern in question.lower() for pattern in follow_up_patterns)
+            
+            if is_follow_up and last_medical_question:
+                combined_question = f"Original Question: {last_medical_question}\n\nFollow-up Request: {question}"
+                chat_context += f"**FOLLOW-UP CONTEXT:** This is a follow-up question to: '{last_medical_question}'\n\n"
+            
+            # Add recent conversation context
+            for i, msg in enumerate(recent_messages, 1):
+                role = "User" if msg.get('role') == 'user' else "Assistant"
+                content = msg.get('content', '')[:200] + "..." if len(msg.get('content', '')) > 200 else msg.get('content', '')
+                chat_context += f"{i}. {role}: {content}\n"
+        
+        # Determine which sections to include based on query type and detail level
+        if is_medical_query:
+            # Check if this is a "explain in detail" request
+            is_detail_request = any(pattern in question.lower() for pattern in ['explain in detail', 'explain further', 'tell me more', 'please explain'])
+            
+            if is_detail_request:
+                # Provide extremely detailed and comprehensive response
+                sections = """
+1. **Definition and Overview** - Comprehensive explanation with multiple perspectives, historical context, and fundamental principles
+2. **Detailed Classification and Taxonomy** - Complete breakdown of categories, subtypes, and classification systems
+3. **Causes and Risk Factors** - Extensive analysis of contributing factors, epidemiology, environmental influences, and genetic predispositions
+4. **Symptoms and Clinical Presentation** - Comprehensive symptom description with severity levels, progression patterns, and atypical presentations
+5. **Diagnosis and Testing** - Complete diagnostic methods, procedures, laboratory tests, imaging studies, and what to expect at each step
+6. **Treatment Options** - Exhaustive treatment approaches, medications, therapies, surgical procedures, alternative treatments, and emerging therapies
+7. **Prevention and Management** - Comprehensive preventive measures, lifestyle changes, ongoing care, monitoring protocols, and long-term strategies
+8. **Prognosis and Outlook** - Detailed expected outcomes, recovery timelines, long-term considerations, and quality of life implications
+9. **Research and Latest Developments** - Current research findings, clinical trials, breakthrough discoveries, and future directions
+10. **Additional Resources** - Extensive list of information sources, support groups, specialists, educational materials, and community resources
+11. **When to Seek Medical Help** - Comprehensive red flags, emergency symptoms, urgency indicators, and escalation protocols
+12. **Patient Education and Self-Care** - Detailed self-care tips, monitoring strategies, follow-up recommendations, and empowerment strategies
+13. **Case Studies and Examples** - Real-world examples, case scenarios, and practical applications
+14. **Common Misconceptions** - Addressing myths, clarifying misunderstandings, and providing evidence-based corrections
+15. **Global and Public Health Perspectives** - Worldwide impact, public health implications, and global health considerations"""
+            else:
+                # Standard detailed response
+                sections = """
 1. **Definition and Overview** - Clear explanation of the medical concept with layman's terms
 2. **Causes and Risk Factors** - Detailed analysis of contributing factors and epidemiology
 3. **Symptoms and Clinical Presentation** - Comprehensive symptom description with severity levels
@@ -903,19 +1029,127 @@ Create a massive, well-explained, and structured medical response that covers:
 7. **Prognosis and Outlook** - Expected outcomes, recovery time, and long-term considerations
 8. **Additional Resources** - Where to find more information, support groups, and specialists
 9. **When to Seek Medical Help** - Red flags, emergency symptoms, and urgency indicators
-10. **Patient Education** - Self-care tips, monitoring, and follow-up recommendations
+10. **Patient Education** - Self-care tips, monitoring, and follow-up recommendations"""
+        else:
+            # For non-medical or follow-up queries, use a more flexible structure
+            sections = """
+1. **Direct Answer** - Provide a comprehensive, detailed response to the user's question
+2. **Context Integration** - Connect this response with previous conversation context
+3. **Detailed Explanation** - Break down complex concepts with examples and clarifications
+4. **Practical Applications** - Show real-world relevance and usage
+5. **Additional Insights** - Provide extra information that might be helpful
+6. **Follow-up Suggestions** - Suggest related questions or areas to explore"""
+        
+        # Enhanced response requirements for detail requests
+        detail_requirements = ""
+        if is_medical_query and any(pattern in question.lower() for pattern in ['explain in detail', 'explain further', 'tell me more', 'please explain']):
+            detail_requirements = """
+**EXTREME DETAIL REQUIREMENTS (for "explain in detail" requests):**
+- Provide the MOST comprehensive response possible
+- Use detailed PARAGRAPHS, not bullet points or summaries
+- Include extensive examples, case studies, and real-world applications
+- Break down every concept into multiple detailed explanations
+- Use detailed tables, lists, and structured information where appropriate
+- Include historical context and evolution of knowledge
+- Provide multiple perspectives and approaches
+- Include technical details while maintaining accessibility
+- Use extensive markdown formatting for optimal structure
+- Provide actionable insights and practical recommendations
+- Include cross-references to related topics and concepts
+- Address edge cases and exceptions
+- Provide step-by-step explanations for complex processes
+- Include statistical data and research findings when relevant
+- Use analogies and metaphors to enhance understanding
+- Provide both beginner and advanced level information
+- Include troubleshooting guides and common problems
+- Provide comprehensive resource lists and references
+- Write in a conversational, educational tone that feels like talking to a knowledgeable healthcare professional"""
+        
+        return f"""{personalization}You are a medical AI specialist. Use the following medical context to provide a comprehensive, well-structured response to the user's question.
+
+**USER QUESTION:** {combined_question}
+
+**MEDICAL CONTEXT (RAG System):**
+{context}{chat_context}
+
+**CRITICAL INSTRUCTION - READ CAREFULLY:**
+You MUST write detailed, comprehensive PARAGRAPHS for each section. DO NOT use bullet points for explanations. DO NOT write one-line summaries. Each section must contain 3-5 substantial paragraphs that thoroughly explain the concepts.
+
+**EXAMPLE OF WHAT TO DO:**
+❌ WRONG (DO NOT DO THIS):
+```
+1. **Definition**: Microbiology is the study of microorganisms
+2. **Importance**: It's important for healthcare
+```
+
+✅ CORRECT (DO THIS):
+```
+1. **Definition and Overview**
+
+Microbiology represents one of the most fundamental and fascinating branches of biological science, dedicated to the comprehensive study of microorganisms - those incredibly diverse, often invisible life forms that exist all around us and within us. These microscopic organisms include bacteria, viruses, fungi, protozoa, and algae, each representing distinct domains of life with unique characteristics and behaviors.
+
+The field of microbiology encompasses not just the identification and classification of these organisms, but also delves deep into understanding their structure, function, metabolism, genetics, and ecological roles. What makes microbiology particularly fascinating is that these tiny organisms, despite their microscopic size, have an enormous impact on virtually every aspect of life on Earth, from human health and disease to environmental processes and industrial applications.
+
+Historically, microbiology emerged as a formal scientific discipline in the late 19th century, largely through the pioneering work of scientists like Louis Pasteur and Robert Koch, who established the germ theory of disease. This revolutionary concept fundamentally changed our understanding of health and illness, leading to the development of vaccines, antibiotics, and modern sanitation practices that have saved countless lives over the past century and continue to do so today.
+
+2. **Importance and Significance**
+
+The importance of microbiology extends far beyond the laboratory and research institutions - it touches every aspect of human life and the natural world around us. From the moment we wake up in the morning until we go to sleep at night, we interact with microorganisms in countless ways, often without even realizing it. Understanding these interactions is crucial for maintaining our health, advancing medical science, and preserving the environment we depend on.
+
+In the realm of human health, microbiology serves as the foundation for modern medicine and disease prevention. Every infectious disease that has ever affected humanity - from the common cold to devastating pandemics like COVID-19 - involves microorganisms as the causative agents. By studying these pathogens, microbiologists can identify their weaknesses, develop targeted treatments, and create vaccines that prevent illness before it even begins. This knowledge has saved millions of lives and continues to protect populations worldwide from both common and emerging infectious threats.
+
+Beyond infectious diseases, microbiology has revolutionized our understanding of the human body itself through the study of the microbiome. The trillions of microorganisms that live in and on our bodies form complex ecosystems that influence everything from digestion and nutrient absorption to immune system function and even mental health. Research into the microbiome has revealed that these microbial communities are not just passive inhabitants but active participants in our biological processes, opening new avenues for treating conditions ranging from inflammatory bowel disease to depression and anxiety.
+```
+
+**SECTION-BY-SECTION REQUIREMENTS:**
+For EVERY section in your response, you MUST follow this exact format:
+
+1. **Section Title** (e.g., "Definition and Overview", "Importance and Significance", "Classification and Taxonomy")
+
+2. **First Paragraph**: Introduce the main concept with broad context and fundamental principles
+
+3. **Second Paragraph**: Provide detailed explanations, examples, and deeper insights
+
+4. **Third Paragraph**: Include practical applications, real-world implications, and additional context
+
+5. **Fourth Paragraph (if needed)**: Add historical perspective, current research, or future implications
+
+**DO NOT USE BULLET POINTS FOR EXPLANATIONS. ONLY USE BULLET POINTS FOR LISTS OF ITEMS (e.g., types of bacteria, symptoms, medications).**
+
+**INSTRUCTIONS:**
+Create a MASSIVE, extremely detailed, and well-structured response that covers:
+
+{sections}
 
 **RESPONSE REQUIREMENTS:**
-- Use the provided medical context as your foundation and expand significantly
+- Use the provided medical context as your foundation and expand SIGNIFICANTLY
+- If this is a follow-up question, reference the previous conversation context
 - Include relevant medical terminology with clear explanations
 - Provide actionable insights and evidence-based recommendations
 - Cite the sources appropriately and mention their reliability
-- Structure the response with clear headings and bullet points
+- Structure the response with clear headings, subheadings, and detailed paragraphs
 - Make the response comprehensive, educational, and easy to understand
 - Include practical examples and real-world applications
 - Address common misconceptions and concerns
 - Provide both immediate and long-term perspectives
 - Format using markdown for optimal readability
+{detail_requirements}
+
+**FORMATTING RULES - YOU MUST FOLLOW THESE:**
+1. **EACH SECTION MUST HAVE 3-5 DETAILED PARAGRAPHS** - No exceptions
+2. **USE BULLET POINTS ONLY FOR LISTS** (e.g., types of bacteria, symptoms, medications)
+3. **WRITE COMPREHENSIVE EXPLANATIONS** in flowing paragraphs
+4. **INCLUDE EXAMPLES, CASE STUDIES, AND REAL-WORLD APPLICATIONS**
+5. **USE CONVERSATIONAL, EDUCATIONAL TONE** like a knowledgeable healthcare professional
+6. **AVOID SUMMARY-STYLE RESPONSES** - this is NOT a summarizer
+7. **PROVIDE SUBSTANTIAL, HELPFUL INFORMATION** in every section
+
+**CONTEXT AWARENESS:**
+- If this is a follow-up question, build upon the previous conversation
+- Maintain conversation continuity and reference earlier points
+- If the user asks for "more detail" or "explain further", expand on the most relevant aspects
+- Ensure the response directly addresses what the user is asking for
+- Combine the follow-up request with the original medical question context
 
 **PERSONALIZATION:**
 - If the user provided their name, address them personally
@@ -923,4 +1157,85 @@ Create a massive, well-explained, and structured medical response that covers:
 - Consider the user's level of medical knowledge
 - Provide encouragement and positive reinforcement
 
-Ensure the response is comprehensive, accurate, and provides immense value to the user while maintaining a warm, professional tone."""
+**FINAL REMINDER:**
+This is a DETAILED HEALTHCARE CHATBOT, not a summarizer. Write comprehensive, educational explanations with substantial paragraphs. Each section should feel like a knowledgeable healthcare professional explaining a complex topic to a patient who wants to understand it thoroughly.
+
+**CRITICAL ENFORCEMENT:**
+- **EVERY SINGLE SECTION** must have 3-5 detailed paragraphs
+- **NO EXCEPTIONS** - this applies to ALL sections (Definition, Importance, Classification, Applications, Research, etc.)
+- **DO NOT** write bullet points for explanations
+- **DO NOT** write one-line summaries
+- **DO NOT** skip the detailed paragraph format for any section
+- **EACH SECTION** must be as detailed as the Definition section example above
+
+**IF YOU FAIL TO FOLLOW THIS FORMAT:**
+- The response will be rejected and regenerated
+- You must write detailed paragraphs for EVERY section
+- This is not optional - it's a strict requirement
+
+Ensure the response is EXTREMELY comprehensive, accurate, and provides immense value to the user while maintaining a warm, professional tone. For "explain in detail" requests, make this the most thorough and detailed response possible with substantial paragraphs, not summaries."""
+
+    def _validate_follow_up_context(self, question: str, chat_history: List[Dict] = None) -> Dict[str, Any]:
+        """Validate if a follow-up question has proper medical context to work with."""
+        if not chat_history or len(chat_history) == 0:
+            return {
+                "valid": False,
+                "error": "I cannot understand your question. Can you please ask me anything about healthcare-related topics?",
+                "suggestion": "Try asking about medical conditions, symptoms, treatments, or medical specialties like microbiology, cardiology, etc."
+            }
+        
+        # Look for medical context in recent messages
+        recent_messages = chat_history[-3:]  # Last 3 messages
+        medical_context_found = False
+        last_medical_question = ""
+        
+        for msg in reversed(recent_messages):
+            if msg.get('role') == 'user':
+                content = msg.get('content', '').lower()
+                # Check if this was a medical question - be more strict
+                if any(term in content for term in ['microbiology', 'medical', 'health', 'disease', 'treatment', 'symptom', 'bacteria', 'virus', 'infection', 'cardiology', 'neurology', 'pathology', 'immunology', 'oncology', 'anatomy', 'physiology', 'biochemistry', 'genetics', 'pharmacology', 'epidemiology', 'virology', 'bacteriology', 'parasitology', 'mycology']):
+                    medical_context_found = True
+                    last_medical_question = msg.get('content', '')
+                    break
+                # Also check for medical "what is" patterns
+                elif any(pattern in content for pattern in ['what is diabetes', 'what is cancer', 'what is hypertension', 'what is microbiology', 'what is radiology', 'what is pathology', 'what is immunology', 'what is cardiology', 'what is neurology', 'what is anatomy', 'what is physiology', 'what is biochemistry', 'what is genetics', 'what is pharmacology', 'what is epidemiology', 'what is virology', 'what is bacteriology', 'what is parasitology', 'what is mycology', 'what is inflammation', 'what is tumor', 'what is arthritis', 'what is asthma', 'what is stroke', 'what is obesity', 'what is thyroid']):
+                    medical_context_found = True
+                    last_medical_question = msg.get('content', '')
+                    break
+                # Check for medical action patterns
+                elif any(pattern in content for pattern in ['how to treat', 'symptoms of', 'causes of', 'treatment for', 'medicine for', 'pain in', 'sick with', 'diagnosed with', 'suffering from', 'experiencing']):
+                    medical_context_found = True
+                    last_medical_question = msg.get('content', '')
+                    break
+        
+        if not medical_context_found:
+            return {
+                "valid": False,
+                "error": "I cannot understand your question. Can you please ask me anything about healthcare-related topics?",
+                "suggestion": "Try asking about medical conditions, symptoms, treatments, or medical specialties like microbiology, cardiology, etc."
+            }
+        
+        # Check if this is a follow-up pattern
+        follow_up_patterns = [
+            'explain in detail', 'explain further', 'tell me more',
+            'can you clarify', 'i don\'t understand', 'how does this work',
+            'why is this important', 'give me examples', 'show me',
+            'demonstrate', 'illustrate', 'describe', 'break down',
+            'simplify', 'summarize', 'recap', 'please explain',
+            'explain it', 'explain this', 'explain that'
+        ]
+        
+        is_follow_up = any(pattern in question.lower() for pattern in follow_up_patterns)
+        
+        if is_follow_up:
+            return {
+                "valid": True,
+                "context": last_medical_question,
+                "type": "follow_up"
+            }
+        else:
+            return {
+                "valid": True,
+                "context": "",
+                "type": "new_question"
+            }

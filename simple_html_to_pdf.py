@@ -24,26 +24,26 @@ try:
     from reportlab.lib.units import inch
     from reportlab.lib import colors
     REPORTLAB_AVAILABLE = True
-    print("✅ ReportLab available for PDF generation")
+    print("ReportLab available for PDF generation")
 except ImportError:
     REPORTLAB_AVAILABLE = False
-    print("⚠️  ReportLab not available, will use HTML output")
+    print("ReportLab not available, will use HTML output")
 
 try:
     import pdfkit
     PDFKIT_AVAILABLE = True
-    print("✅ pdfkit available for PDF generation")
+    print("pdfkit available for PDF generation")
 except ImportError:
     PDFKIT_AVAILABLE = False
-    print("⚠️  pdfkit not available")
+    print("pdfkit not available")
 
 try:
     from bs4 import BeautifulSoup
     BEAUTIFULSOUP_AVAILABLE = True
-    print("✅ BeautifulSoup available for HTML parsing")
+    print("BeautifulSoup available for HTML parsing")
 except ImportError:
     BEAUTIFULSOUP_AVAILABLE = False
-    print("⚠️  BeautifulSoup not available, HTML parsing limited")
+    print("BeautifulSoup not available, HTML parsing limited")
 
 class SimpleHTMLToPDFConverter:
     """Simple HTML to PDF converter using lightweight methods"""
@@ -66,16 +66,16 @@ class SimpleHTMLToPDFConverter:
                 # Test if wkhtmltopdf is available
                 if shutil.which('wkhtmltopdf'):
                     engines.append('pdfkit')
-                    print("✅ pdfkit + wkhtmltopdf detected!")
+                    print("pdfkit + wkhtmltopdf detected!")
                 else:
-                    print("⚠️  pdfkit available but wkhtmltopdf not found")
+                    print("pdfkit available but wkhtmltopdf not found")
             except Exception:
                 pass
         
         # Check reportlab (pure Python)
         if REPORTLAB_AVAILABLE:
             engines.append('reportlab')
-            print("✅ ReportLab detected!")
+            print("ReportLab detected!")
         
         # Check if browser printing is available (fallback)
         engines.append('browser-print')
@@ -111,8 +111,32 @@ class SimpleHTMLToPDFConverter:
         
         return clean_text
     
+    def _get_logo_base64(self) -> str:
+        """Convert MedBot logo to base64 for embedding in HTML"""
+        try:
+            logo_path = Path("images/MedBotLogo.png")
+            if logo_path.exists():
+                import base64
+                with open(logo_path, "rb") as img_file:
+                    img_data = base64.b64encode(img_file.read()).decode('utf-8')
+                    return f"data:image/png;base64,{img_data}"
+            else:
+                print(f"Warning: Logo file not found at {logo_path}")
+                return ""
+        except Exception as e:
+            print(f"Warning: Could not load logo: {e}")
+            return ""
+    
     def create_beautiful_html_template(self, title: str = "Research Article") -> str:
         """Create a beautiful HTML template with modern styling"""
+        
+        # Get logo as base64
+        logo_base64 = self._get_logo_base64()
+        if logo_base64:
+            print(f"✅ Logo loaded successfully (size: {len(logo_base64)} characters)")
+        else:
+            print("⚠️ Logo not loaded, will use fallback emoji")
+        
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -133,41 +157,248 @@ class SimpleHTMLToPDFConverter:
             line-height: 1.7;
             color: #2d3748;
             background: #ffffff;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 20px;
+            max-width: 100%;
+            margin: 0;
+            padding: 0 60px 40px 60px;
             font-size: 16px;
             counter-reset: h1-counter h2-counter h3-counter h4-counter;
         }}
         
         .header {{
             text-align: center;
-            margin-bottom: 60px;
-            padding: 40px 0;
-            border-bottom: 3px solid #4299e1;
+            margin-bottom: 50px;
+            padding: 45px 0;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 25%, #7c3aed 50%, #9333ea 75%, #be185d 100%);
+            color: white;
+            border-radius: 0 0 20px 20px;
+            margin: 0 -60px 50px -60px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }}
+        
+        .header::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }}
+        
+        .header::after {{
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 25%, #ec4899 50%, #f59e0b 75%, #10b981 100%);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }}
+        
+        @keyframes shimmer {{
+            0% {{ transform: translateX(-100%); }}
+            100% {{ transform: translateX(100%); }}
+        }}
+        
+        /* Professional accent elements */
+        .header .accent-line {{
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+            transform: translateY(-50%);
+        }}
+        
+        .header .accent-dots {{
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }}
+        
+        .header .accent-dots::before,
+        .header .accent-dots::after {{
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }}
+        
+        .header .accent-dots::after {{
+            animation-delay: 1s;
+        }}
+        
+        @keyframes pulse {{
+            0%, 100% {{ opacity: 0.6; transform: scale(1); }}
+            50% {{ opacity: 1; transform: scale(1.2); }}
+        }}
+        
+        .download-btn {{
+            position: absolute;
+            top: 20px;
+            right: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-radius: 12px;
-            margin: 0 -20px 40px -20px;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 35px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            z-index: 1000;
+        }}
+        
+        .download-btn:hover {{
+            transform: translateY(-4px) scale(1.08);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.7);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            border-color: rgba(255, 255, 255, 0.6);
+        }}
+        
+        .download-btn:active {{
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }}
+        
+        .download-btn::before {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            border-radius: 30px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }}
+        
+        .download-btn:hover::before {{
+            opacity: 1;
         }}
         
         .logo {{
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.4), 0 8px 16px rgba(0,0,0,0.2);
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }}
+        
+        .logo-icon {{
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            min-height: 60px;
+        }}
+        
+        .logo-icon img {{
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            animation: icon-bounce 3s ease-in-out infinite;
+            max-width: 100%;
+            height: auto;
+        }}
+        
+        .logo-icon img:not([src]) {{
+            display: none;
+        }}
+        
+        .logo-icon img[src=""] {{
+            display: none;
+        }}
+        
+        .logo-icon:empty::before {{
+            content: '🏥';
+            font-size: 32px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            animation: icon-bounce 3s ease-in-out infinite;
+        }}
+        
+        @keyframes icon-bounce {{
+            0%, 100% {{ transform: translateY(0); }}
+            50% {{ transform: translateY(-3px); }}
+        }}
+        
+        .logo-icon::after {{
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+            animation: icon-shine 2s ease-in-out infinite;
+        }}
+        
+        @keyframes icon-shine {{
+            0% {{ transform: translateX(-100%) rotate(45deg); }}
+            100% {{ transform: translateX(100%) rotate(45deg); }}
         }}
         
         .subtitle {{
-            font-size: 1.1rem;
-            font-weight: 400;
-            opacity: 0.9;
+            font-size: 1.3rem;
+            font-weight: 500;
+            opacity: 0.95;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 2;
         }}
         
         .date {{
-            margin-top: 20px;
-            opacity: 0.8;
-            font-size: 0.9rem;
+            margin-top: 25px;
+            opacity: 0.85;
+            font-size: 1rem;
+            font-weight: 400;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }}
         
         h1 {{
@@ -179,6 +410,8 @@ class SimpleHTMLToPDFConverter:
             padding-bottom: 10px;
             position: relative;
             counter-increment: h1-counter;
+            text-align: left;
+            padding-left: 0;
         }}
         
         h1::before {{
@@ -205,8 +438,9 @@ class SimpleHTMLToPDFConverter:
             margin: 30px 0 15px 0;
             font-weight: 600;
             position: relative;
-            padding-left: 15px;
+            padding-left: 0;
             counter-increment: h2-counter;
+            text-align: left;
         }}
         
         h2::before {{
@@ -222,6 +456,8 @@ class SimpleHTMLToPDFConverter:
             margin: 25px 0 12px 0;
             font-weight: 500;
             counter-increment: h3-counter;
+            text-align: left;
+            padding-left: 0;
         }}
         
         h3::before {{
@@ -237,6 +473,8 @@ class SimpleHTMLToPDFConverter:
             margin: 20px 0 10px 0;
             font-weight: 500;
             counter-increment: h4-counter;
+            text-align: left;
+            padding-left: 0;
         }}
         
         h4::before {{
@@ -248,8 +486,12 @@ class SimpleHTMLToPDFConverter:
         
         p {{
             margin: 16px 0;
-            text-align: justify;
+            text-align: justify !important;
             color: #4a5568;
+            padding-left: 0;
+            margin-left: 0;
+            line-height: 1.8;
+            word-spacing: 0.5px;
         }}
         
         .abstract {{
@@ -259,6 +501,7 @@ class SimpleHTMLToPDFConverter:
             margin: 25px 0;
             border-radius: 0 12px 12px 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: justify !important;
         }}
         
         .abstract h2 {{
@@ -272,7 +515,8 @@ class SimpleHTMLToPDFConverter:
         }}
         
         table {{
-            width: 100%;
+            width: 100% !important;
+            max-width: 100% !important;
             border-collapse: collapse;
             margin: 25px 0;
             border-radius: 12px;
@@ -340,13 +584,22 @@ class SimpleHTMLToPDFConverter:
         
         .footer .logo {{
             font-size: 1.5rem;
-            color: #4299e1;
+            color: #1e40af;
             margin-bottom: 10px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }}
         
         .footer .subtitle {{
-            color: #718096;
+            color: #374151;
             font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }}
+        
+        .footer div {{
+            color: #4b5563;
+            font-weight: 500;
         }}
         
         /* Print styles */
@@ -362,6 +615,10 @@ class SimpleHTMLToPDFConverter:
                 page-break-after: avoid;
             }}
             
+            .download-btn {{
+                display: none; /* Hide download button when printing */
+            }}
+            
             h1, h2, h3, h4 {{
                 page-break-after: avoid;
             }}
@@ -373,17 +630,103 @@ class SimpleHTMLToPDFConverter:
             .footer {{
                 margin-top: 40px;
             }}
+            
+            /* Ensure tables don't break across pages */
+            table {{
+                page-break-inside: avoid;
+            }}
+            
+            /* Better page breaks for content */
+            p {{
+                orphans: 3;
+                widows: 3;
+            }}
+        }}
+        
+        /* Content alignment and spacing */
+        .content-wrapper {{
+            max-width: 100%;
+            margin: 0;
+            padding: 20px 0 0 0;
+            width: 100%;
+        }}
+        
+        /* Ensure headings and content are perfectly aligned */
+        h1, h2, h3, h4 {{
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            text-align: left !important;
+        }}
+        
+        /* Justify all paragraph text for professional look */
+        p, ul, ol, table, blockquote {{
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            text-align: justify !important;
+        }}
+        
+        /* Remove any default margins that might cause misalignment */
+        * {{
+            box-sizing: border-box;
+        }}
+        
+        /* Ensure content uses full width */
+        #content {{
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }}
+        
+        /* Ensure all text content is properly justified */
+        #content p, #content ul, #content ol, #content blockquote {{
+            text-align: justify !important;
+            margin: 16px 0 !important;
+            padding: 0 !important;
         }}
         
         /* Responsive design */
         @media (max-width: 768px) {{
             body {{
                 padding: 20px 15px;
+                max-width: 100%;
+                margin: 0;
             }}
             
             .header {{
                 margin: 0 -15px 30px -15px;
-                padding: 30px 15px;
+                padding: 40px 15px;
+                border-radius: 0 0 15px 15px;
+            }}
+            
+            .logo {{
+                font-size: 2.8rem;
+                gap: 15px;
+            }}
+            
+            .logo-icon {{
+                width: 50px;
+                height: 50px;
+            }}
+            
+            .logo-icon img {{
+                width: 35px;
+                height: 35px;
+            }}
+            
+            .subtitle {{
+                font-size: 1.1rem;
+            }}
+            
+            .date {{
+                font-size: 0.9rem;
+                padding: 6px 15px;
+            }}
+            
+            .content-wrapper {{
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
             }}
             
             h1 {{
@@ -406,12 +749,22 @@ class SimpleHTMLToPDFConverter:
 </head>
 <body>
     <div class="header">
-        <div class="logo">MedBot</div>
+        <button class="download-btn" onclick="downloadAsPDF()">
+            📄 DOWNLOAD PDF
+        </button>
+        <div class="accent-line"></div>
+        <div class="logo">
+            <div class="logo-icon">
+                <img src="{logo_base64}" alt="MedBot Logo">
+            </div>
+            <span>MedBot</span>
+        </div>
         <div class="subtitle">Healthcare AI Assistant</div>
         <div class="date" id="current-date"></div>
+        <div class="accent-dots"></div>
     </div>
-    
-    <div id="content">
+     
+    <div id="content" class="content-wrapper">
         <!-- Content will be inserted here -->
     </div>
     
@@ -436,6 +789,37 @@ class SimpleHTMLToPDFConverter:
         
         document.getElementById('current-date').textContent = dateString;
         document.getElementById('current-date-footer').textContent = dateString;
+        
+        function downloadAsPDF() {{
+            // Use browser's print functionality to save as PDF
+            window.print();
+        }}
+        
+        // Handle logo image loading
+        document.addEventListener('DOMContentLoaded', function() {{
+            const logoImg = document.querySelector('.logo-icon img');
+            if (logoImg) {{
+                logoImg.onerror = function() {{
+                    console.log('Logo image failed to load, showing fallback');
+                    this.style.display = 'none';
+                    const icon = this.parentElement;
+                    icon.innerHTML = '🏥';
+                    icon.style.fontSize = '32px';
+                    icon.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+                }};
+                logoImg.onload = function() {{
+                    console.log('Logo image loaded successfully');
+                }};
+            }}
+        }});
+        
+        // Add keyboard shortcut (Ctrl+P or Cmd+P)
+        document.addEventListener('keydown', function(e) {{
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {{
+                e.preventDefault();
+                downloadAsPDF();
+            }}
+        }});
     </script>
 </body>
 </html>"""
@@ -474,10 +858,10 @@ class SimpleHTMLToPDFConverter:
         return full_html
     
     def convert_markdown_to_pdf(self, markdown_file: Path, output_name: Optional[str] = None) -> Optional[Path]:
-        """Convert markdown file to PDF using available engines with priority order"""
+        """Convert markdown file to HTML and open in browser for PDF download"""
         
         if not markdown_file.exists():
-            print(f"❌ Markdown file not found: {markdown_file}")
+            print(f"Markdown file not found: {markdown_file}")
             return None
         
         # Determine output name with timestamp to avoid conflicts
@@ -486,50 +870,70 @@ class SimpleHTMLToPDFConverter:
         
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = self.output_dir / f"{output_name}_{timestamp}.pdf"
+        output_file = self.output_dir / f"{output_name}_{timestamp}.html"
         
-        print(f"🔄 Converting {markdown_file.name} to PDF...")
-        print(f"📁 Output: {output_file}")
+        print(f"Converting {markdown_file.name} to HTML...")
+        print(f"Output: {output_file}")
         
         # Convert markdown to HTML first
         try:
             html_content = self.convert_markdown_to_html(markdown_file)
             if not html_content:
-                print("❌ Failed to convert markdown to HTML")
+                print("Failed to convert markdown to HTML")
                 return None
         except Exception as e:
-            print(f"❌ HTML conversion failed: {e}")
+            print(f"HTML conversion failed: {e}")
             return None
         
-        # Try to create PDF using available engines
-        success = False
-        
-        # Method 1: ReportLab (pure Python PDF generation)
-        if REPORTLAB_AVAILABLE:
-            success = self._convert_with_reportlab(html_content, output_file)
-            if success:
-                return output_file
-        
-        # Method 2: pdfkit (wkhtmltopdf wrapper)
-        if PDFKIT_AVAILABLE:
-            success = self._convert_with_pdfkit(html_content, output_file)
-            if success:
-                return output_file
-        
-        # Method 3: Browser print (last resort, but always works)
-        print("🔄 All automatic methods failed, using browser print...")
-        success = self._convert_with_browser_print(html_content, output_file)
-        
-        if success:
+        # Save HTML file and open in browser
+        try:
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            
+            print(f"HTML file created successfully: {output_file}")
+            print("Opening in browser for PDF download...")
+            print("Instructions:")
+            print("1. Click the 'DOWNLOAD PDF' button in the top-right corner")
+            print("2. Or press Ctrl+P (Cmd+P on Mac) to open print dialog")
+            print("3. Select 'Save as PDF' as destination")
+            print("4. Choose your desired location and save")
+            
+            # Open in default browser only once
+            try:
+                webbrowser.open(f'file://{output_file.absolute()}')
+                print(f"✅ Browser opened successfully with file: {output_file.absolute()}")
+            except Exception as browser_error:
+                print(f"⚠️ Browser opening failed: {browser_error}")
+                print(f"📁 You can manually open this file: {output_file.absolute()}")
+                
+                # Fallback: try to open with system default application
+                try:
+                    import subprocess
+                    import platform
+                    
+                    if platform.system() == "Windows":
+                        os.startfile(str(output_file.absolute()))
+                        print(f"✅ File opened with default application on Windows")
+                    elif platform.system() == "Darwin":  # macOS
+                        subprocess.run(["open", str(output_file.absolute())])
+                        print(f"✅ File opened with default application on macOS")
+                    else:  # Linux
+                        subprocess.run(["xdg-open", str(output_file.absolute())])
+                        print(f"✅ File opened with default application on Linux")
+                except Exception as app_error:
+                    print(f"⚠️ Application opening failed: {app_error}")
+                    print(f"📁 Please manually open: {output_file.absolute()}")
+            
             return output_file
-        else:
-            print("❌ All PDF conversion methods failed")
+            
+        except Exception as e:
+            print(f"Failed to save HTML file: {e}")
             return None
     
     def _convert_with_reportlab(self, html_content: str, output_file: Path) -> bool:
         """Convert HTML to PDF using ReportLab with proper structure preservation"""
         try:
-            print("🔄 Converting with ReportLab...")
+            print("Converting with ReportLab...")
             
             # Create a PDF document with proper margins
             doc = SimpleDocTemplate(
@@ -670,26 +1074,30 @@ class SimpleHTMLToPDFConverter:
                 
                 # Process the main content systematically - COMPREHENSIVE APPROACH
                 main_content = soup.find('body') or soup
-                
+
                 # Track heading numbers for proper structure
                 h1_count = 0
                 h2_count = 0
                 h3_count = 0
                 h4_count = 0
-                
-                # Get ALL text content first to ensure nothing is missed
-                all_text = main_content.get_text()
-                print(f"📊 Total text content length: {len(all_text)} characters")
-                
-                # Parse content in order of appearance to maintain structure
-                elements = []
-                
-                # Process all elements in the order they appear
-                for element in main_content.descendants:
+
+                # Process all elements recursively to capture all content
+                def process_element(element):
+                    nonlocal h1_count, h2_count, h3_count, h4_count
+                    
+                    if not hasattr(element, 'name'):
+                        return
+                        
                     # Skip script tags and other unwanted elements
                     if element.name in ['script', 'style', 'meta', 'link']:
-                        continue
-                        
+                        return
+
+                    # Skip unwanted content sections
+                    if element.name == 'div' and element.get('class'):
+                        div_classes = element.get('class', [])
+                        if any(cls in div_classes for cls in ['header', 'footer', 'footer-content', 'footer-title', 'footer-info']):
+                            return
+
                     if element.name == 'h1':
                         h1_count += 1
                         h2_count = 0
@@ -728,9 +1136,9 @@ class SimpleHTMLToPDFConverter:
                         text = element.get_text().strip()
                         if text:
                             # Filter out JavaScript code and unwanted content
-                            if any(keyword in text.lower() for keyword in ['const ', 'function', 'document.', 'getelementbyid', 'script', 'javascript']):
-                                continue  # Skip JavaScript code
-                            
+                            if any(keyword in text.lower() for keyword in ['const ', 'function', 'document.', 'getelementbyid', 'script', 'javascript', 'document generated successfully', 'this document was created by medbot', 'professional medical research analysis']):
+                                return  # Skip unwanted content
+
                             clean_text = self._clean_text_for_reportlab(text)
                             if clean_text:
                                 # Check if this is an abstract
@@ -739,13 +1147,13 @@ class SimpleHTMLToPDFConverter:
                                 else:
                                     elements.append(Paragraph(clean_text, normal_style))
                     elif element.name == 'table':
-                        # Handle tables with proper structure - NO DUPLICATION APPROACH
+                        # Handle tables with proper structure
                         try:
-                            print(f"🔄 Processing table: {element.get_text()[:100]}...")
-                            
+                            print(f"Processing table...")
+
                             # Process table data with better structure handling
                             data = []
-                            
+
                             # Find all rows
                             rows = element.find_all('tr')
                             if rows:
@@ -753,7 +1161,7 @@ class SimpleHTMLToPDFConverter:
                                 for row in rows:
                                     row_data = []
                                     cells = row.find_all(['th', 'td'])
-                                    
+
                                     for cell in cells:
                                         cell_text = cell.get_text().strip()
                                         clean_cell_text = self._clean_text_for_reportlab(cell_text)
@@ -772,14 +1180,14 @@ class SimpleHTMLToPDFConverter:
                                             else:
                                                 # Data cell - use normal style
                                                 row_data.append(Paragraph(clean_cell_text, table_style))
-                                    
+
                                     if row_data:  # Only add rows with content
                                         data.append(row_data)
-                                
+
                                 if data:
                                     # Calculate optimal column widths based on content
                                     max_cols = max(len(row) for row in data) if data else 1
-                                    
+
                                     # Adjust column widths based on content
                                     col_widths = []
                                     for col_idx in range(max_cols):
@@ -789,24 +1197,24 @@ class SimpleHTMLToPDFConverter:
                                             if col_idx < len(row):
                                                 text_length = len(row[col_idx].text)
                                                 max_width = max(max_width, text_length)
-                                        
+
                                         # Set column width based on content (minimum 1.5 inch, maximum 3 inch)
                                         col_width = max(1.5*inch, min(3*inch, max_width * 0.1*inch))
                                         col_widths.append(col_width)
-                                    
+
                                     # Create table with proper styling
                                     table = Table(data, colWidths=col_widths)
-                                    
+
                                     # Enhanced table styling with better visual appeal
                                     table_style_list = [
                                         # Basic alignment
                                         ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                                         ('VALIGN', (0,0), (-1,-1), 'TOP'),
-                                        
+
                                         # Enhanced grid lines
                                         ('INNERGRID', (0,0), (-1,-1), 0.8, colors.darkblue),
                                         ('BOX', (0,0), (-1,-1), 1.2, colors.darkblue),
-                                        
+
                                         # Header row styling (first row) - Professional look
                                         ('BACKGROUND', (0,0), (-1,0), colors.lightblue),
                                         ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
@@ -814,48 +1222,46 @@ class SimpleHTMLToPDFConverter:
                                         ('TEXTCOLOR', (0,0), (-1,0), colors.white),
                                         ('BOTTOMPADDING', (0,0), (-1,0), 10),
                                         ('TOPPADDING', (0,0), (-1,0), 10),
-                                        
+
                                         # Data rows styling - Clean and readable
                                         ('BACKGROUND', (0,1), (-1,-1), colors.white),
                                         ('FONTNAME', (0,1), (-1,-1), 'Helvetica'),
                                         ('FONTSIZE', (0,1), (-1,-1), 10),
                                         ('TEXTCOLOR', (0,1), (-1,-1), colors.black),
-                                        
+
                                         # Alternating row colors for better readability
                                         ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.lightgrey]),
-                                        
+
                                         # Enhanced padding for better spacing
                                         ('BOTTOMPADDING', (0,1), (-1,-1), 10),
                                         ('TOPPADDING', (0,1), (-1,-1), 10),
                                         ('LEFTPADDING', (0,0), (-1,-1), 8),
                                         ('RIGHTPADDING', (0,0), (-1,-1), 8),
-                                        
+
                                         # Row height for better proportions
                                         ('MINIMUMHEIGHT', (0,0), (-1,-1), 25),
                                     ]
-                                    
+
                                     # Apply table styling
                                     table.setStyle(TableStyle(table_style_list))
-                                    
+
                                     elements.append(table)
                                     elements.append(Spacer(1, 15))
-                                    print(f"✅ Table processed successfully with {len(data)} rows and {max_cols} columns")
+                                    print(f"Success: Table processed successfully with {len(data)} rows and {max_cols} columns")
                                 else:
                                     # Fallback: add table as text
                                     table_text = element.get_text().strip()
                                     clean_table_text = self._clean_text_for_reportlab(table_text)
                                     if clean_table_text:
                                         elements.append(Paragraph(f"Table Content: {clean_table_text}", normal_style))
-                                    
+
                         except Exception as e:
-                            print(f"⚠️  Table processing failed: {e}")
-                            import traceback
-                            traceback.print_exc()
+                            print(f"Warning: Table processing failed: {e}")
                             # Fallback: add table as text
                             table_text = element.get_text().strip()
                             clean_table_text = self._clean_text_for_reportlab(table_text)
                             if clean_table_text:
-                                elements.append(Paragraph(f"Table: {clean_table_text}", normal_style))
+                                elements.append(Paragraph(f"Table Content: {clean_table_text}", normal_style))
                     elif element.name in ['ul', 'ol']:
                         # Handle lists with proper indentation
                         list_items = element.find_all('li')
@@ -873,7 +1279,7 @@ class SimpleHTMLToPDFConverter:
                         # Handle special divs like abstract, figures
                         div_class = element.get('class', [])
                         text = element.get_text().strip()
-                        
+
                         if text:
                             clean_text = self._clean_text_for_reportlab(text)
                             if clean_text:
@@ -906,17 +1312,19 @@ class SimpleHTMLToPDFConverter:
                             clean_text = self._clean_text_for_reportlab(text)
                             if clean_text:
                                 elements.append(Paragraph(f"Code Block: {clean_text}", normal_style))
-                
-                # Also capture any remaining text content that might be between elements
-                for text_node in main_content.find_all(text=True):
-                    if text_node.parent.name not in ['h1', 'h2', 'h3', 'h4', 'p', 'table', 'ul', 'ol', 'div', 'blockquote', 'code', 'pre']:
-                        text = text_node.strip()
-                        if text and len(text) > 20:  # Only add substantial text
-                            clean_text = self._clean_text_for_reportlab(text)
-                            if clean_text:
-                                elements.append(Paragraph(clean_text, normal_style))
-                
-                print(f"📊 Total elements created: {len(elements)}")
+                    
+                    # Process all children recursively
+                    for child in element.children:
+                        process_element(child)
+
+                # Start processing from the main content
+                process_element(main_content)
+
+                # Add a simple, clean end marker
+                elements.append(Spacer(1, 30))
+                elements.append(Paragraph("─" * 60, normal_style))
+                elements.append(Spacer(1, 15))
+                elements.append(Paragraph("End of Document", normal_style))
                 
                 # Add amazing and professional end of document
                 elements.append(Spacer(1, 40))
@@ -986,22 +1394,22 @@ class SimpleHTMLToPDFConverter:
             if elements:
                 try:
                     doc.build(elements)
-                    print(f"✅ PDF created successfully with ReportLab: {output_file}")
-                    print(f"📊 File size: {output_file.stat().st_size / 1024:.1f} KB")
+                    print(f"PDF created successfully with ReportLab: {output_file}")
+                    print(f"File size: {output_file.stat().st_size / 1024:.1f} KB")
                     return True
                 except PermissionError:
-                    print(f"❌ Permission denied: {output_file}")
-                    print("💡 The file might be open in another application. Please close it and try again.")
+                    print(f"Permission denied: {output_file}")
+                    print("The file might be open in another application. Please close it and try again.")
                     return False
                 except Exception as e:
-                    print(f"❌ PDF build failed: {e}")
+                    print(f"PDF build failed: {e}")
                     return False
             else:
-                print("❌ No content to convert")
+                print("No content to convert")
                 return False
                 
         except Exception as e:
-            print(f"❌ ReportLab conversion failed: {e}")
+            print(f"ReportLab conversion failed: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -1009,7 +1417,7 @@ class SimpleHTMLToPDFConverter:
     def _convert_with_pdfkit(self, html_content: str, output_file: Path) -> bool:
         """Convert HTML to PDF using pdfkit (wkhtmltopdf wrapper)"""
         try:
-            print("🔄 Converting with pdfkit...")
+            print("Converting with pdfkit...")
             
             # Create temporary HTML file
             with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
@@ -1045,21 +1453,21 @@ class SimpleHTMLToPDFConverter:
             os.unlink(temp_html)
             
             if result.returncode == 0 and output_file.exists() and output_file.stat().st_size > 0:
-                print(f"✅ PDF created successfully with pdfkit: {output_file}")
-                print(f"📊 File size: {output_file.stat().st_size / 1024:.1f} KB")
+                print(f"PDF created successfully with pdfkit: {output_file}")
+                print(f"File size: {output_file.stat().st_size / 1024:.1f} KB")
                 return True
             else:
-                print(f"❌ pdfkit failed: {result.stderr}")
+                print(f"pdfkit failed: {result.stderr}")
                 return False
                 
         except Exception as e:
-            print(f"❌ pdfkit conversion failed: {e}")
+            print(f"pdfkit conversion failed: {e}")
             return False
     
     def _convert_with_browser_print(self, html_content: str, output_file: Path) -> bool:
         """Convert using browser print (preview only, PDF saved automatically)"""
         try:
-            print("🔄 Using browser preview method...")
+            print("Using browser preview method...")
             
             # Create temporary HTML file
             with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
@@ -1083,19 +1491,19 @@ class SimpleHTMLToPDFConverter:
             os.unlink(temp_html)
             
             # Create a simple PDF using basic HTML-to-PDF conversion
-            print("🔄 Creating PDF from HTML content...")
+            print("Creating PDF from HTML content...")
             success = self._create_simple_pdf(html_content, output_file)
             
             if success:
-                print(f"✅ PDF created successfully: {output_file}")
-                print(f"📊 File size: {output_file.stat().st_size / 1024:.1f} KB")
+                print(f"PDF created successfully: {output_file}")
+                print(f"File size: {output_file.stat().st_size / 1024:.1f} KB")
                 return True
             else:
-                print(f"❌ Failed to create PDF automatically")
+                print(f"Failed to create PDF automatically")
                 return False
                 
         except Exception as e:
-            print(f"❌ Browser preview method failed: {e}")
+            print(f"Browser preview method failed: {e}")
             return False
     
     def _create_simple_pdf(self, html_content: str, output_file: Path) -> bool:
@@ -1106,14 +1514,14 @@ class SimpleHTMLToPDFConverter:
                 return self._convert_with_weasyprint(html_content, output_file)
             
             # If no engines available, create a basic HTML file that can be printed
-            print("💡 No PDF engines available. Creating HTML file for manual printing...")
+            print("No PDF engines available. Creating HTML file for manual printing...")
             html_output = self.output_dir / f"{output_file.stem}.html"
             
             with open(html_output, 'w', encoding='utf-8') as f:
                 f.write(html_content)
             
-            print(f"📄 HTML file created: {html_output}")
-            print(f"💡 To convert to PDF:")
+            print(f"HTML file created: {html_output}")
+            print(f"To convert to PDF:")
             print(f"   1. Open {html_output} in your browser")
             print(f"   2. Press Ctrl+P and select 'Save as PDF'")
             print(f"   3. Save to: {output_file}")
@@ -1121,7 +1529,7 @@ class SimpleHTMLToPDFConverter:
             return False
             
         except Exception as e:
-            print(f"❌ Simple PDF creation failed: {e}")
+            print(f"Simple PDF creation failed: {e}")
             return False
     
     def batch_convert(self, markdown_dir: str = "articles") -> List[Path]:
@@ -1129,22 +1537,22 @@ class SimpleHTMLToPDFConverter:
         markdown_dir = Path(markdown_dir)
         
         if not markdown_dir.exists():
-            print(f"❌ Directory not found: {markdown_dir}")
+            print(f"Directory not found: {markdown_dir}")
             return []
         
         markdown_files = list(markdown_dir.glob("**/*.md"))
         
         if not markdown_files:
-            print(f"❌ No markdown files found in {markdown_dir}")
+            print(f"No markdown files found in {markdown_dir}")
             return []
         
-        print(f"📁 Found {len(markdown_files)} markdown files to convert")
+        print(f"Found {len(markdown_files)} markdown files to convert")
         
         successful_conversions = []
         
         for md_file in markdown_files:
             print(f"\n{'='*60}")
-            print(f"🔄 Processing: {md_file.name}")
+            print(f"Processing: {md_file.name}")
             print(f"{'='*60}")
             
             # Convert to PDF
@@ -1152,12 +1560,12 @@ class SimpleHTMLToPDFConverter:
             
             if pdf_file and pdf_file.exists():
                 successful_conversions.append(pdf_file)
-                print(f"✅ Successfully converted: {pdf_file.name}")
+                print(f"Successfully converted: {pdf_file.name}")
             else:
-                print(f"❌ Failed to convert: {md_file.name}")
+                print(f"Failed to convert: {md_file.name}")
         
-        print(f"\n🎉 Batch conversion complete!")
-        print(f"✅ Successful: {len(successful_conversions)}/{len(markdown_files)}")
+        print(f"\nBatch conversion complete!")
+        print(f"Successful: {len(successful_conversions)}/{len(markdown_files)}")
         
         return successful_conversions
 
@@ -1181,9 +1589,9 @@ def main():
         # Single file conversion
         pdf_file = converter.convert_markdown_to_pdf(input_path)
         if pdf_file:
-            print(f"🎉 Successfully created: {pdf_file}")
+            print(f"Successfully created: {pdf_file}")
         else:
-            print("❌ Conversion failed")
+            print("Conversion failed")
             sys.exit(1)
 
 if __name__ == "__main__":

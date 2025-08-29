@@ -1,0 +1,85 @@
+# 🧠 PubMed/PMC Research Report
+- **Original query:** `heart Transplant`
+- **Enhanced PubMed query:** `(("heart Transplant"[tiab]) OR ("cardiac transplantation"[tiab]) OR ("heart allograft rejection"[tiab]) OR ("orthotopic heart transplant"[tiab]) OR ("cardiac graft survival"[tiab]) OR ("heart transplant rejection"[tiab]) OR ("cardiac allograft vasculopathy"[tiab]) OR ("heart-lung transplantation"[tiab]))`
+- **Seed articles:** 8 | **Related articles:** 0
+
+## 📌 Executive Summary
+We present a case series of pediatric and young adult heart transplant recipients demonstrating donor-derived cell-free DNA's potential utility in monitoring for AMR and the effect of therapies including daratumumab. In this case series of pediatric and young adult heart transplant recipients, our findings suggest that dd-cfDNA can serve as a valuable biomarker for diagnosing AMR and treatment response, which are not often reflected by DSA MFI alone. A questionnaire was distributed to thoracic organ transplant recipients to capture demographics, risk perception, knowledge regarding vaccination, history of travel outside metropolitan France, pre-travel advice, health issues during travel outside Europe, and travel intentions in the following year. Her NICM progressively worsened, and the patient underwent a heart transplant at the age of 38 and again at the age of 42. This case exemplifies the utility of employing genetic testing early in the diagnostic workup of NICM before applying the designation "idiopathic."
+Cytomegalovirus Encephalitis in a Heart Transplant Recipient Presenting With Behavioral Changes and Functional Neurologic Deficits. The introduction of ABO-incompatible (ABOi) heart transplantation for infants in the early 2000s expanded the donor pool for individual candidates. Predictors for severe PGD included pre-transplant extracorporeal membrane oxygenation (Adjusted Odds Ratio (AOR): 2.55, p<0.001), hearts from donation after circulatory death (AOR: 2.13, p<0.001), donor acidemia prior to procurement (AOR: 2.01, p<0.001), recipient history of sternotomy (AOR: 1.83, p<0.001), and increased donor heart ischemic time (AOR: 1.18 per hour, p<0.001).
+
+## 🔎 Query Expansion Details
+- **LLM terms:** heart Transplant, cardiac transplantation, heart allograft rejection, orthotopic heart transplant, cardiac graft survival, heart transplant rejection, cardiac allograft vasculopathy, heart-lung transplantation
+- **Top MeSH hits:** —
+
+## 📄 Articles
+### 1. Donor-Derived Cell-Free DNA as a Marker for the Efficacy of Daratumumab in Patients With Antibody-Mediated Rejection Post-Heart Transplantation: A Case Series.
+**Authors:** Anusha Konduri, Kathryn E Flynn, Ashley Huebschman, Bronwyn Crandall, Natalie Sinicropi, Bethany Giacobbe, Mary Zamberlan, Matthew Najor, Matthew Cusick, Heang M Lim, Amanda D McCormick, Kurt R Schumacher, David M Peng
+
+**Abstract:** Antibody-mediated rejection (AMR) remains a significant complication following heart transplantation, contributing to graft dysfunction and reduced survival. Donor-derived cell-free DNA (dd-cfDNA) is emerging as a non-invasive biomarker for detecting and monitoring graft injury, correlating with episodes of rejection and response to treatment. Daratumumab, an anti-CD38 monoclonal antibody targeting plasma cells, has shown promise in treating AMR. We present a case series of pediatric and young adult heart transplant recipients demonstrating donor-derived cell-free DNA's potential utility in monitoring for AMR and the effect of therapies including daratumumab. We report five cases showing that elevated dd-cfDNA correlated with pathological AMR (pAMR), and treatment with daratumumab improved both pAMR and dd-cfDNA levels. Most of our patients had persistently elevated donor-specific antibody (DSA) as observed by MFI values; however, there was a reduction in DSA titer that corresponded with improvement in pAMR and dd-cfDNA levels. Recurrent increases in dd-cfDNA were also useful in guiding the need for repeat treatment with daratumumab. Although DSA levels often remained elevated despite histologic improvement, decreasing dd-cfDNA levels correlated more closely with the resolution of AMR. In this case series of pediatric and young adult heart transplant recipients, our findings suggest that dd-cfDNA can serve as a valuable biomarker for diagnosing AMR and treatment response, which are not often reflected by DSA MFI alone. Our dd-cfDNA data supports the efficacy of daratumumab in treating AMR and may guide the need for ongoing treatment. Further studies are warranted to validate these findings and establish guidance for the use of daratumumab and dd-cfDNA in this patient population.
+
+*Citation:* Donor-Derived Cell-Free DNA as a Marker for the Efficacy of Daratumumab in Patients With Antibody-Mediated Rejection Post-Heart Transplantation: A Case Series. (Pediatric transplantation, 2025). PMID: 40851173
+
+---
+### 2. Not lost in translation: Learning from the non-native English-speaking heart transplant recipient experience.
+**Authors:** Thomas M Cascino, Geoffrey D Barnes
+
+**Abstract:** No abstract available.
+
+*Citation:* Not lost in translation: Learning from the non-native English-speaking heart transplant recipient experience. (Journal of cardiac failure, 2025). PMID: 40848927
+
+---
+### 3. Travel Practices and Associated Risks in Adult Thoracic Transplant Recipients: A Monocentric Survey.
+**Authors:** Benoît Henry, Aurélie Garraffo, Paul-Henri Consigny, Claire Rouzaud, Fanny Lanternier, Pierre Frange, Ngoc-Tram To, Pierre Buffet, Benoît Pilmis, Shahid Husain, Elie Fadel, Jérôme Le Pavec, Olivier Lortholary
+
+**Abstract:** Little is known regarding the travel practices of thoracic organ transplant recipients and their potential associated morbidity. A questionnaire was distributed to thoracic organ transplant recipients to capture demographics, risk perception, knowledge regarding vaccination, history of travel outside metropolitan France, pre-travel advice, health issues during travel outside Europe, and travel intentions in the following year. Comparisons were performed between travelers and non-travelers through univariable then multivariable logistic regression. 134 patients completed the survey (72% lung, 11% heart, and 17% heart-lung transplant recipients). Twenty-four percent considered themselves at moderately to significantly increased risk of travel-related health issues. Sixty-two patients (47%) had traveled outside metropolitan France. Among 29 subjects who had traveled outside Europe, 22 had received pre-travel advice. Among 62 respondents who had traveled outside metropolitan France, 6 (10%) experienced health issues (all outside Europe), which led to consultation in three cases and hospitalization in one case. Among 117 respondents, 68 (58%) intended to travel within the following year, and 57 (84%) to seek medical advice before departure, predominantly from their transplant physician. In multivariable analysis, being a lung transplant recipient and higher education level were associated with travel outside Europe. The time post-transplantation was longer for all types of travel, when compared to non-travelers. Almost half of adult thoracic transplant recipients had traveled outside metropolitan France, 22% outside Europe, and 10% of travelers experienced health issues. The suboptimal preparation of these patients underlines the potential benefits of closer interaction between travel medicine specialists and transplant physicians.
+
+*Citation:* Travel Practices and Associated Risks in Adult Thoracic Transplant Recipients: A Monocentric Survey. (Clinical transplantation, 2025). PMID: 40847995
+
+---
+### 4. Ultrasound molecular imaging of M2 macrophages for early detection of chronic rejection in heart transplantation.
+**Authors:** Jia Xu, Cheng Deng, Tang Gao, Mengrong He, Wenpei Fu, Xin Zhang, Yin Bai, Jiani Qiu, Rui Wang, Yihan Chen, Qiaofeng Jin, Li Zhang, Qing Lv, Mingxing Xie, Wenqian Wu
+
+**Abstract:** Chronic rejection (CR) remains the leading cause of morbidity and mortality in heart transplantation survivors. The primary pathological features of CR encompass cardiac allograft vasculopathy and myocardial fibrosis. Currently, its diagnosis heavily relies on invasive procedures, underscoring the pressing need for non-invasive evaluation methods. This study introduces a novel approach utilizing mannose-modified microbubbles (MB
+
+*Citation:* Ultrasound molecular imaging of M2 macrophages for early detection of chronic rejection in heart transplantation. (Journal of nanobiotechnology, 2025). PMID: 40847355
+
+---
+### 5. Nonischemic Cardiomyopathy in Adult-Onset PPA2-Deficient Mitochondrial Disease.
+**Authors:** Emilie Théberge, Jillianne Code, John K Khoo, Chi Lai, Andrew Ignaszewski, Sean Virani, Mustafa Toma, Thomas M Roston, Tara Sedlak, Anna Lehman
+
+**Abstract:** Nonischemic cardiomyopathy (NICM) can be caused by single-gene mutations, including genes such as inorganic pyrophosphatase 2 (PPA2) with multisystem effects. A 28-year-old woman presenting with respiratory symptoms was discharged with a diagnosis of decompensated idiopathic NICM. Her NICM progressively worsened, and the patient underwent a heart transplant at the age of 38 and again at the age of 42. At age 47, genetic testing confirmed 2 mutations in the PPA2 gene that had caused her NICM. This patient is to our knowledge the oldest published to date (48 years) presenting with cardiac symptoms who has PPA2 deficiency, a mitochondrial disease characterized by sudden cardiac death in infancy. This case exemplifies the utility of employing genetic testing early in the diagnostic workup of NICM before applying the designation "idiopathic."
+
+*Citation:* Nonischemic Cardiomyopathy in Adult-Onset PPA2-Deficient Mitochondrial Disease. (JACC. Case reports, 2025). PMID: 40846385
+
+---
+### 6. Cytomegalovirus Encephalitis in a Heart Transplant Recipient Presenting With Behavioral Changes and Functional Neurologic Deficits.
+**Authors:** Rahi P Patel, Ashley Seymour, Steven Brady, Rami Kahwash
+
+**Abstract:** Cytomegalovirus (CMV) encephalitis is a rare but serious complication in immunocompromised patients, particularly transplant recipients as they are heavily immunosuppressed. We report the first documented case to our knowledge of CMV encephalitis in a 67-year-old male heart transplant recipient, confirmed by cerebrospinal fluid polymerase chain reaction. The patient presented with confusion and distinct behavioral changes, yet brain magnetic resonance imaging revealed no acute abnormalities. This case highlights the potential for CMV encephalitis to present with significant neurologic symptoms without any radiologic abnormalities, emphasizing the importance of molecular diagnostics in immunocompromised patients with unexplained neurologic deterioration. CMV encephalitis in transplant recipients can present with significant neurologic symptoms despite normal brain magnetic resonance imaging, necessitating cerebrospinal fluid analysis for timely diagnosis and management. Close monitoring of CMV viremia and neurologic status is critical, as clinical improvement may lag behind virologic clearance, necessitating individualized treatment strategies.
+
+*Citation:* Cytomegalovirus Encephalitis in a Heart Transplant Recipient Presenting With Behavioral Changes and Functional Neurologic Deficits. (JACC. Case reports, 2025). PMID: 40846376
+
+---
+### 7. ABO-incompatible heart transplants in children aged 2-9 years: a new paradigm in transplant?
+**Authors:** Paolo Hollis, Richard Issitt, Sebastiano A G Lava, Craig Laurence, Jacob Simmonds, Matthew Fenton, Nagarajan Muthialu, Alex Robertson, Richard Crook, Lori West, Michael Burch
+
+**Abstract:** Paediatric heart transplantation remains hampered by the limited availability of donor organs. The introduction of ABO-incompatible (ABOi) heart transplantation for infants in the early 2000s expanded the donor pool for individual candidates. Nonetheless, concerns remain about ABOi heart transplantation in children aged over 2 years and it has not been routinely adopted. At our centre we have considered candidates aged 2-9 years for ABOi donors if isohaemagglutinin titres were 1:32 or less. We report the outcomes of those who received an ABOi heart transplant. Furthermore, as all transplant-listed children in this age group were tested for isohaemagglutinins, the potential for ABOi transplant was investigated. Data were retrospectively analysed from all paediatric heart transplants undertaken at our centre between 1st January 2013 and 1st June 2023. Primary outcome measures were anti-A and/or anti-B titres at listing and whether an ABOi transplant was performed. Secondary outcome measures were survival and incidence of rejection. 62 children 2 to 9 years of age (median age 5.1 years) underwent heart transplantation during the study period. One patient was blood group AB; of the remaining 61 patients, 51 had anti-A and/or anti-B titres measured whilst listed for transplant. Of these, 44 (86%) had isohaemagglutinin titres of 1:32 or less at the time of listing, and this dropped to 40 (78%) by the time of transplant. Over the study period, 14 children (age range 2.5-8.9 years, median 4.3 years) underwent ABOi transplant; all 14 patients were well at follow-up with median follow-up time of 4.9 years, range 1.7 to 8.9 years. Our data suggests that ABOi heart transplantation is a safe and effective option for older children, at least to 9 years of age. Furthermore, we have shown that the great majority of young children have isohaemagglutinin titres in the range that ABOi transplant could be considered. These findings may have a substantial impact on donor availability worldwide. Further work is needed to see if the age range can be extended further.
+
+*Citation:* ABO-incompatible heart transplants in children aged 2-9 years: a new paradigm in transplant? (The Journal of heart and lung transplantation : the official publication of the International Society for Heart Transplantation, 2025). PMID: 40846116
+
+---
+### 8. Predictors and Outcomes for Severe Primary Graft Dysfunction in Heart Transplantation: United States Cohort Analysis.
+**Authors:** Peter D Cho, Hedwig Zappacosta, Joseph Song, John P White, Stephanie McKay, Donatello Telesca, Malini Daniel, Abbas Ardehali
+
+**Abstract:** Severe Primary Graft Dysfunction (PGD) is the leading cause of early mortality in heart transplantation, yet national incidence, risk factors, and outcomes remain poorly characterized. This study aims to assess predictors and outcomes of severe PGD in a contemporary United States cohort. The United Network for Organ Sharing database was retrospectively reviewed for isolated adult heart transplant recipients (9/2023-3/2025). The population was stratified into severe PGD (left or bi-ventricular dysfunction within 24 hours following transplantation that requires mechanical circulatory support (MCS)) and Control cohorts (all other recipients). Predictors of severe PGD were identified using multivariable logistic regression. The severe PGD cohort was further classified into Transient severe Primary Graft Dysfunction (TPGD, MCS off by 72 hours) vs. Persistent severe Primary Graft Dysfunction (PPGD, remained on MCS at 72 hours). The Kaplan-Meier method was used to compare 3-month survival between groups. During the study interval, 5,097 heart transplant recipients were identified in the US, with 6.6% (n=338) developing severe PGD. Predictors for severe PGD included pre-transplant extracorporeal membrane oxygenation (Adjusted Odds Ratio (AOR): 2.55, p<0.001), hearts from donation after circulatory death (AOR: 2.13, p<0.001), donor acidemia prior to procurement (AOR: 2.01, p<0.001), recipient history of sternotomy (AOR: 1.83, p<0.001), and increased donor heart ischemic time (AOR: 1.18 per hour, p<0.001). The severe PGD group experienced lower 3-month survival than the Control group (74.4% vs 96.8%, p<0.001). Among severe PGD cases, 36.7% (n=124) experienced TPGD. Recipients with TPGD had a higher 3-month survival than those with PPGD (88.0% vs 67.2%, p<0.001). Severe PGD following heart transplantation is associated with high early mortality. A substantial proportion of severe PGD cases demonstrate early graft recovery. Consideration of risk factors in donor and recipient matching may mitigate the incidence of severe PGD.
+
+*Citation:* Predictors and Outcomes for Severe Primary Graft Dysfunction in Heart Transplantation: United States Cohort Analysis. (The Journal of heart and lung transplantation : the official publication of the International Society for Heart Transplantation, 2025). PMID: 40846114
+
+---
+
+## ❗ No related articles found.
+
+### 🔍 Suggested Queries:
+- `coronary artery bypass grafting outcomes randomized`
+- `CABG vs PCI long-term survival`
+- `off-pump CABG complications`

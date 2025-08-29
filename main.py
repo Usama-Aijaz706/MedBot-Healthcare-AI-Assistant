@@ -1,7 +1,7 @@
 import os
 import asyncio
 import json
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -11,6 +11,7 @@ from pydantic import BaseModel
 import uvicorn
 from pathlib import Path
 import logging
+import re
 
 # Import our RAG system
 from rag_system import RAGSystem
@@ -47,6 +48,16 @@ chat_interface = ChatInterface(healthcare_rag=None)  # We don't need the old RAG
 knowledge_base_initialized = False
 system_status = {}
 
+# Pydantic models for request/response
+class ChatRequest(BaseModel):
+    user_question: str
+    chat_history: Optional[List[Dict[str, str]]] = []
+
+class ChatResponse(BaseModel):
+    response: str
+    sources: Optional[List[Dict[str, Any]]] = []
+    status: str = "success"
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize the system on startup."""
@@ -82,6 +93,81 @@ async def root(request: Request):
     """Serve the main chat interface."""
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    """Chat endpoint for processing user questions."""
+    try:
+        # Process the user question through the RAG system
+        rag_response = rag_system.generate_azure_enhanced_response(
+            question=request.user_question,
+            chat_history=request.chat_history
+        )
+        
+        # Check if the response was successful
+        if not rag_response.get("success", False):
+            error_msg = rag_response.get("error", "Unknown error occurred")
+            raise HTTPException(status_code=400, detail=error_msg)
+        
+        # Extract the response text and sources
+        response_text = rag_response.get("response", "No response generated")
+        relevant_chunks = rag_response.get("relevant_chunks", [])
+        
+        # Clean the response text to remove any HTML tags
+        response_text = re.sub(r'<[^>]+>', '', response_text)
+        response_text = response_text.strip()
+        
+        # Add a note to encourage table usage when appropriate
+        if "table" not in response_text.lower() and len(response_text) > 500:
+            response_text += "\n\n💡 **Tip:** For complex medical information, consider asking me to present data in tables for better understanding!"
+        
+        # Format sources for the frontend
+        sources = []
+        for chunk in relevant_chunks:
+            source_info = {
+                "source": chunk.get("metadata", {}).get("source", "Unknown Source"),
+                "relevance_score": chunk.get("similarity_score", 0.0),
+                "content": chunk.get("content", "")[:200] + "..." if len(chunk.get("content", "")) > 200 else chunk.get("content", "")
+            }
+            sources.append(source_info)
+        
+        # Return the response
+        return ChatResponse(
+            response=response_text,
+            sources=sources,
+            status="success"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in chat endpoint: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.get("/test-rag")
+async def test_rag():
+    """Test endpoint to verify RAG system is working."""
+    try:
+        # Simple test query
+        test_response = rag_system.generate_azure_enhanced_response(
+            question="What is microbiology?",
+            chat_history=[]
+        )
+        
+        return {
+            "status": "success",
+            "rag_system_working": test_response.get("success", False),
+            "test_response": test_response.get("response", "No response")[:200] + "..." if len(test_response.get("response", "")) > 200 else test_response.get("response", ""),
+            "chunks_used": test_response.get("chunks_used", 0)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error testing RAG system: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "rag_system_working": False
+        }
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
@@ -97,134 +183,6 @@ async def get_status():
     global system_status
     system_status = rag_system.get_system_status()
     return system_status
-
-@app.post("/api/chat")
-async def chat_endpoint(request: dict):
-    """Chat endpoint for the RAG-enhanced chatbot."""
-    global knowledge_base_initialized, system_status
-    
-    try:
-        user_message = request.get("message", "").strip()
-        chat_mode = request.get("mode", "rag")  # "rag" or "general"
-        get_context_only = request.get("get_context_only", False)
-        use_azure_enhancement = request.get("use_azure_enhancement", False)
-        generate_comprehensive_response = request.get("generate_comprehensive_response", False)
-        
-        if not user_message:
-            raise HTTPException(status_code=400, detail="Message cannot be empty")
-        
-        logger.info(f"💬 Chat request: {chat_mode} mode - {user_message[:100]}...")
-        
-        # Check if only context is needed
-        if get_context_only:
-            if not knowledge_base_initialized:
-                return {
-                    "success": False,
-                    "error": "Knowledge base not initialized",
-                    "suggestion": "Please wait for initialization to complete"
-                }
-            
-            # Get only RAG context without generating response
-            context_response = rag_system.get_context_only(user_message)
-            if context_response["success"]:
-                return {
-                    "success": True,
-                    "relevant_chunks": context_response["relevant_chunks"],
-                    "sources": [{"source": chunk["metadata"]["source"], "relevance": chunk["similarity_score"]} for chunk in context_response["relevant_chunks"]],
-                    "mode": "context_only"
-                }
-            else:
-                return {
-                    "success": False,
-                    "error": "Failed to retrieve context",
-                    "details": context_response.get("error", "Unknown error")
-                }
-        
-        # Check if Azure enhancement is requested
-        if use_azure_enhancement and generate_comprehensive_response:
-            if not knowledge_base_initialized:
-                return {
-                    "success": False,
-                    "error": "Knowledge base not initialized",
-                    "suggestion": "Please wait for initialization to complete"
-                }
-            
-            # Extract user name if present in the message
-            user_name = rag_system.extract_user_name(user_message)
-            
-            # Use Azure to generate comprehensive response with user personalization
-            azure_response = rag_system.generate_azure_enhanced_response(user_message, user_name)
-            if azure_response["success"]:
-                return {
-                    "success": True,
-                    "response": azure_response["response"],
-                    "sources": [{"source": chunk["metadata"]["source"], "relevance": chunk["similarity_score"]} for chunk in azure_response.get("relevant_chunks", [])],
-                    "mode": "azure_enhanced",
-                    "chunks_used": azure_response.get("chunks_used", 0),
-                    "user_name": user_name
-                }
-            else:
-                return {
-                    "success": False,
-                    "error": "Failed to generate Azure enhanced response",
-                    "details": azure_response.get("error", "Unknown error")
-                }
-        
-        if chat_mode == "rag":
-            if not knowledge_base_initialized:
-                # Try to initialize knowledge base if not done
-                logger.info("🔄 Knowledge base not initialized, attempting to initialize...")
-                success = rag_system.initialize_knowledge_base()
-                if success:
-                    knowledge_base_initialized = True
-                    system_status = rag_system.get_system_status()
-                else:
-                    return {
-                        "success": False,
-                        "error": "Knowledge base not initialized. Please wait for initialization to complete.",
-                        "suggestion": "Try again in a few moments or contact support."
-                    }
-            
-            # Use RAG system for response
-            response = rag_system.query_knowledge_base(user_message)
-            
-            if response["success"]:
-                return {
-                    "success": True,
-                    "response": response["response"],
-                    "sources": [{"source": chunk["metadata"]["source"], "relevance": chunk["similarity_score"]} for chunk in response["relevant_chunks"]],
-                    "mode": "rag",
-                    "chunks_used": response["chunks_used"]
-                }
-            else:
-                # Fallback to general chat if RAG fails
-                logger.warning(f"RAG query failed: {response.get('error')}, falling back to general chat")
-                general_response = chat_interface.generate_response(user_message)
-                return {
-                    "success": True,
-                    "response": general_response + "\n\n⚠️ Note: RAG system unavailable, using general knowledge.",
-                    "sources": [],
-                    "mode": "general_fallback",
-                    "chunks_used": 0
-                }
-        else:
-            # General chat mode
-            response = chat_interface.generate_response(user_message)
-            return {
-                "success": True,
-                "response": response,
-                "sources": [],
-                "mode": "general",
-                "chunks_used": 0
-            }
-            
-    except Exception as e:
-        logger.error(f"❌ Error in chat endpoint: {e}")
-        return {
-            "success": False,
-            "error": "An error occurred while processing your request",
-            "details": str(e)
-        }
 
 @app.post("/api/initialize-knowledge-base")
 async def initialize_knowledge_base_endpoint():
