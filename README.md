@@ -50,6 +50,7 @@ MedBot is a **sophisticated, production-ready healthcare AI assistant** that tra
 - **Git**: [Download Git](https://git-scm.com/downloads)
 - **PDF Reader**: For viewing source documents
 - **Modern Browser**: Chrome, Firefox, Safari, or Edge
+- **uv (Recommended)**: [Install uv](https://docs.astral.sh/uv/getting-started/installation/) for faster dependency management
 
 ### **API Keys (Optional but Recommended)**
 - **Groq API**: [Get Groq API Key](https://console.groq.com/)
@@ -61,9 +62,9 @@ MedBot is a **sophisticated, production-ready healthcare AI assistant** that tra
 
 ### **📋 Environment Configuration Steps**
 
-1. **Copy `.env.example` to `.env`**
+1. **Copy `env_example.txt` to `.env`**
    ```bash
-   cp .env.example .env
+   cp env_example.txt .env
    ```
 
 2. **Fill in your actual API keys and credentials**
@@ -89,10 +90,15 @@ AZURE_OPENAI_API_KEY=your_azure_openai_key_here
 AZURE_ENDPOINT_URL=your_azure_endpoint_url_here
 HF_TOKEN=your_huggingface_token_here
 
+# Research & Article Integration
+NCBI_API_KEY=your_ncbi_api_key_here
+NCBI_EMAIL=your_email@example.com
+
 # System Configuration
 CHUNK_SIZE=1000
 CHUNK_OVERLAP=200
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+BIOBERT_MODEL=pritamdeka/BioBERT-mnli-snli-scinli-scitail-mednli-stsb
 LOG_LEVEL=INFO
 ```
 
@@ -243,17 +249,42 @@ The MedBot implements the complete RAG workflow as shown in the diagram:
 🏥 MedBot/
 ├── 🚀 Core Application Files
 │   ├── main.py                    # FastAPI application with RAG endpoints
+│   ├── new_app.py                 # Advanced Streamlit application with MedBot branding (120KB+)
 │   ├── streamlit_app.py           # Streamlit web application (50KB, 1359 lines)
 │   ├── rag_system.py              # Complete RAG system implementation (42KB, 927 lines)
 │   ├── healthcare_rag.py          # Alternative RAG system with LangChain support (14KB, 300 lines)
 │   ├── chat_interface.py          # Chat logic and response generation (18KB, 377 lines)
-│   └── run_medbot.py              # Alternative runner script (2.8KB, 89 lines)
+│   └── debug_rag.py               # RAG system debugging and testing utilities
 │
-├── 📚 Document Processing
+├── 📚 Document Processing & Conversion
 │   ├── pdf_processor.py           # Advanced PDF processing and chunking (7.5KB, 199 lines)
 │   ├── process_pdfs.py            # PDF processing and embedding creation script (5.6KB, 159 lines)
+│   ├── complete_pdf_converter.py  # Comprehensive PDF conversion system
+│   ├── simple_html_to_pdf.py      # HTML to PDF conversion with multiple engines
+│   ├── md_to_pdf_converter.py     # Markdown to PDF conversion utilities
 │   ├── article_fetcher.py         # Research article fetcher from PubMed/Europe PMC (6.9KB, 210 lines)
+│   ├── article_fetching_system.py # Advanced article system with intelligent query enhancement
 │   └── pdf_processing.log         # Processing logs and debugging information (67KB, 937 lines)
+│
+├── 🔬 Research & Article Management
+│   ├── pmid.py                    # PubMed ID and research article utilities
+│   ├── article_references/        # Article reference metadata and summaries
+│   │   ├── articles_reference_heart_Transplant_20250829_003420.md
+│   │   ├── articles_reference_heart_transplantation_research_20250829_000141.md
+│   │   ├── articles_reference_heart_transplantation_research_20250829_000628.md
+│   │   └── articles_reference_lung_cancer_20250829_004450.md
+│   └── articles/                  # Full research articles with figures and content
+│       ├── An_In-depth_overview_of_artificial_intelligence_AI_tool_utilization/
+│       ├── Calnexin_More_Than_Just_a_Molecular_Chaperone_/
+│       ├── Cancer_genomics_and_bioinformatics_in_Latin_American_countries/
+│       ├── Cost-effectiveness_assessment_of_liquid_biopsy_for_early_detection/
+│       ├── Differences_in_the_distribution_of_HER2-positive_breast_tumors/
+│       ├── Epigenetic_Clocks_and_Their_Prospective_Application/
+│       ├── Monotherapy_Immunosuppression_in_Pediatric_Heart_Transplant/
+│       ├── Multilevel_factors_associated_with_delays_in_screening/
+│       ├── Recent_advances_and_challenges_of_cellular_immunotherapies/
+│       ├── Sequential_or_concomitant_chemotherapy_with_hypofractionated/
+│       └── Unraveling_the_role_of_stromal_disruption_in_aggressive_breast_cancer/
 │
 ├── 🔢 AI & Vector Systems
 │   ├── embedding_system.py        # Embedding creation and ChromaDB storage (9.8KB, 248 lines)
@@ -264,31 +295,55 @@ The MedBot implements the complete RAG workflow as shown in the diagram:
 │   ├── test_knowledge_base.py     # Knowledge base testing (2.7KB, 75 lines)
 │   ├── test_healthcare_detection.py # Healthcare content detection tests (3.3KB, 102 lines)
 │   ├── test_azure_groq_pipeline.py # Azure/Groq pipeline testing (3.4KB, 85 lines)
-│   └── test_user_name_features.py # User name feature testing (4.0KB, 110 lines)
+│   ├── test_user_name_features.py # User name feature testing (4.0KB, 110 lines)
+│   ├── test_article_system.py     # Article fetching system testing
+│   ├── test_chat_endpoint.py      # Chat endpoint and API testing
+│   └── test_europe_pmc.py         # Europe PMC integration testing
 │
-├── 🎨 User Interfaces
+├── 🎨 User Interfaces & Templates
 │   ├── templates/
 │   │   └── index.html             # Web interface (45KB, 1333 lines)
 │   ├── start.py                   # Startup script with health checks
-│   └── run_streamlit.bat          # Windows batch file for Streamlit
+│   ├── run_streamlit.bat          # Windows batch file for Streamlit
+│   └── images/
+│       ├── MedBotLogo.png         # Official MedBot logo and branding
+│       ├── Advanced Component Architecture.png
+│       ├── Complete RAG Workflow Implementation.png
+│       ├── Data Flow Architecture.png
+│       └── feature Comparison.png
 │
-├── 📖 Knowledge Base
-│   ├── med-books/                 # Medical PDF documents directory
-│   └── articles/                  # Research articles and papers
+├── 📖 Knowledge Base & Medical Content
+│   ├── med-books/                 # Medical PDF documents directory (30+ medical textbooks)
+│   ├── medical_summary_1.md       # Medical content summaries and notes
+│   ├── medical_summary_2.md       # Additional medical summaries
+│   ├── medical_summary_3.md       # Extended medical content
+│   ├── medical_summary_4.md       # Comprehensive medical summaries
+│   ├── medical_summary_5.md       # Advanced medical content
+│   ├── medical_summary_6.md       # Specialized medical summaries
+│   ├── medical_summary_7.md       # Latest medical content
+│   ├── medical_summary3.md        # Alternative medical summaries
+│   └── medical_summary4.md        # Extended medical summaries
+│
+├── 📄 PDF Outputs & Generated Content
+│   ├── pdf_outputs/               # Generated PDF and HTML outputs
+│   │   ├── article_*.pdf          # Article PDF conversions
+│   │   ├── article_*.html         # Article HTML outputs
+│   │   └── test_article_*.pdf     # Test article PDFs
+│   └── logs/                      # Application logs and monitoring
 │
 ├── ⚙️ Configuration & Dependencies
 │   ├── requirements.txt            # Core Python dependencies (13 packages)
 │   ├── requirements_streamlit.txt  # Streamlit-specific dependencies (6 packages)
 │   ├── pyproject.toml             # Project configuration for uv (46 lines)
 │   ├── uv.lock                    # Dependency lock file (1.0MB)
+│   ├── env_example.txt            # Environment variables template
 │   └── .venv/                     # Virtual environment directory
 │
-├── 📊 Logs & Monitoring
-│   └── logs/                      # Application logs and monitoring
-│
-└── 📄 Documentation
+└── 📄 Documentation & Guides
     ├── README.md                  # This comprehensive guide
-    └── README_Streamlit.md        # Streamlit-specific documentation (11KB, 314 lines)
+    ├── README_Streamlit.md        # Streamlit-specific documentation (11KB, 314 lines)
+    ├── README_Article_References.md # Article reference system documentation
+    └── MEDBOT_TECHNICAL_DOCUMENTATION.md # Complete technical documentation
 ```
 
 ### **🔍 File Analysis & Capabilities**
@@ -476,14 +531,19 @@ print(f"Total embeddings: {status['total_embeddings']}")
 #### **4. Research Article Integration**
 ```python
 from article_fetcher import fetch_article
+from article_fetching_system import ArticleFetchingSystem
 
 # Fetch research articles by different identifiers
 fetch_article("10.1000/example.doi")  # DOI
 fetch_article("PMID12345")            # PubMed ID
 fetch_article("PMC12345")             # PMCID
 
+# Advanced article fetching with intelligent query enhancement
+article_system = ArticleFetchingSystem()
+articles = article_system.search_articles("lung cancer immunotherapy", max_results=10)
+
 # Articles are automatically saved to articles/ directory
-# With full-text extraction, figures, and tables
+# With full-text extraction, figures, tables, and PDF conversion
 ```
 
 #### **5. Multi-LLM Provider Usage**
@@ -610,10 +670,12 @@ python test_rag.py              # Test the complete system
 
 #### **🔍 Research Integration**
 - **PubMed Integration**: Access to latest medical research
-- **Europe PMC**: Full-text article retrieval
+- **Europe PMC**: Full-text article retrieval with intelligent query enhancement
 - **Semantic Scholar**: Abstract and citation analysis
 - **Unpaywall**: Open access PDF downloads
 - **Figure & Table Extraction**: Automatic image and data extraction
+- **PDF Conversion**: Beautiful HTML and PDF output generation
+- **Query Enhancement**: AI-powered search term optimization via Groq API
 
 #### **🤖 Multi-LLM Intelligence**
 - **Groq**: Fast inference for quick responses
@@ -766,14 +828,19 @@ response = rag.get_response("What is the relationship between heart disease and 
 ### **2. Research Article Integration**
 ```python
 from article_fetcher import fetch_article
+from article_fetching_system import ArticleFetchingSystem
 
 # Fetch research articles from PubMed/Europe PMC
 fetch_article("10.1000/example.doi")  # DOI
 fetch_article("PMID12345")            # PubMed ID
 fetch_article("PMC12345")             # PMCID
 
+# Advanced article fetching with intelligent query enhancement
+article_system = ArticleFetchingSystem()
+articles = article_system.search_articles("lung cancer immunotherapy", max_results=10)
+
 # Automatic content extraction and formatting
-# Supports figures, tables, and full-text XML
+# Supports figures, tables, full-text XML, and PDF conversion
 ```
 
 ### **3. Intelligent Fallback Systems**
@@ -1035,6 +1102,9 @@ MedBot is designed for **educational and informational purposes only**. It shoul
 ## **🔮 Roadmap & Future Features**
 
 ### **Short Term (3-6 months)**
+- [x] **Advanced Article Fetching**: Intelligent query enhancement and research integration ✅
+- [x] **PDF Conversion System**: Beautiful HTML and PDF output generation ✅
+- [x] **Comprehensive Documentation**: Complete technical documentation and guides ✅
 - [ ] **Web Search Integration**: Real-time medical information retrieval
 - [ ] **Multi-language Support**: International medical literature access
 - [ ] **Enhanced UI**: Advanced chat interface with medical diagrams
@@ -1083,8 +1153,9 @@ MedBot is designed for **educational and informational purposes only**. It shoul
 
 **Current Status**: 🚀 **Production Ready**
 **Last Updated**: 📅 **December 2024**
-**Version**: 🏷️ **v1.0.0**
+**Version**: 🏷️ **v1.1.0**
 **Python Support**: 🐍 **3.9+**
+**New Features**: 🔬 **Advanced Article System, PDF Conversion, Enhanced Documentation**
 
 ## **📊 Feature Comparison Matrix**
 
