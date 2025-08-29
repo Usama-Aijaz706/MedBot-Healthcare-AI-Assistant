@@ -200,14 +200,14 @@ LOG_LEVEL=INFO
 #### **Option A: Streamlit Interface (Recommended for Development)**
 ```bash
 # Run Streamlit app
-streamlit run streamlit_app.py
+streamlit run new_app.py
 
 # Access at: http://localhost:8501
 ```
 
 #### **Option B: FastAPI Backend with Web Interface**
 ```bash
-# Run FastAPI server
+
 python main.py
 
 # Access at: http://localhost:8000
